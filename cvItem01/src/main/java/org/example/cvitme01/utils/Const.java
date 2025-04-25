@@ -1,0 +1,26 @@
+package org.example.cvitme01.utils;
+
+
+//存入经常使用的属性
+public class Const {
+    //邮箱验证码存入Redis前缀
+    public static final String VERIFY_EMAIL_DATA="verify:email:";
+
+    //黑名单前缀
+    public static final String JWT_BLACK_LIST="jwt:blacklist:";
+
+    //用户id（在拦截器时就存在了setAttribute里面）
+    public static final String ATTR_USER_ID="user_id:";
+
+    //跨域拦截器的优先级
+    public static final int ORDER_CORS=-102;
+
+    //存头像的文件地址（歌手，歌单，用户，歌曲）
+    public static final String AVATAR_PATH="D:\\item2\\avatar\\";
+
+    //存mp3文件地址
+    public static  final String MP3_PATH="D:\\item2\\mp3\\";
+
+    //存lrc文件地址
+    public static final String LRC_PATH="D:\\item2\\lrc\\";
+}
