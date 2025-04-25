@@ -1,13 +1,11 @@
 package org.example.cvitme01.entity.dto;
 
-import org.babyfish.jimmer.sql.Entity;
-import org.babyfish.jimmer.sql.GeneratedValue;
-import org.babyfish.jimmer.sql.GenerationType;
-import org.babyfish.jimmer.sql.Id;
+import org.babyfish.jimmer.sql.*;
 
 import java.util.Date;
 
 @Entity
+@Table(name = "account")
 public interface Account {
 
     @Id

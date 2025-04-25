@@ -39,6 +39,13 @@ public class SecurityConfiguration {
                 //路由管理
                 .authorizeHttpRequests(conf->conf
                         .requestMatchers("/api/auth/**").permitAll()//允许这个路径的路由通过（可直接访问）
+                        .requestMatchers("/api/user/**").permitAll()//允许这个路径的路由通过（可直接访问）
+                        .requestMatchers(
+                                "/swagger-ui.html",
+                                "/swagger-ui/**",
+                                "/v3/api-docs/**",
+                                "/v3/api-docs.yaml"
+                        ).permitAll()
                         .anyRequest().authenticated()//其他的要验证后访问
                 )
                 //登录

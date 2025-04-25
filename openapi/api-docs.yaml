@@ -3,13 +3,13 @@ info:
   title: OpenAPI definition
   version: v0
 servers:
-  - url: http://localhost:8081
-    description: Generated server url
+- url: http://localhost:8081
+  description: Generated server url
 paths:
   /api/user/test:
     get:
       tags:
-        - account-controller
+      - account-controller
       operationId: test
       responses:
         "200":

@@ -1,6 +1,7 @@
 package org.example.cvitme01.controller;
 
 import lombok.RequiredArgsConstructor;
+import org.example.cvitme01.entity.RestBean;
 import org.example.cvitme01.entity.dto.Account;
 import org.example.cvitme01.service.AccountService;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,7 +17,7 @@ public class AccountController {
 
 
     @GetMapping("/test")
-    public Account test() {
-        return accountService.findByUsername("test");
+    public RestBean<Account> test() {
+        return RestBean.success(accountService.findByUsername("admin"));
     }
 }
