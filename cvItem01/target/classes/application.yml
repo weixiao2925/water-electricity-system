@@ -1,0 +1,33 @@
+spring.application.name:
+  cvItem01
+
+server:
+  port: 8081
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/user
+    username: root
+    password: 123456
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  mail:
+    host: smtp.163.com
+    username: xiamulan2925@163.com
+    password: VZZAYGPEQFGSJDIO
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      database: 0
+  security:
+    jwt:
+      key:
+        abcdef
+      expire:
+        7
+  servlet:
+    multipart:
+      max-file-size: 100MB
+      max-request-size: 100MB
+jimmer:
+  language: java
+  show-sql: true
