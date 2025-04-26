@@ -49,6 +49,11 @@ const userLogin = () =>{
     )
 }
 
+
+definePageMeta({
+    layout: 'guest'
+})
+
 </script>
 
 <template>
