@@ -2,6 +2,7 @@
 
 import {Lock, Message} from "@element-plus/icons-vue";
 import type {FormRules} from "element-plus";
+import {useAuthService} from "~/services/auth";
 
 interface LoginForm{
     username: string
@@ -41,7 +42,11 @@ const submit = () =>{
 }
 
 const userLogin = () =>{
-
+    useAuthService().login(
+        form.username,
+        form.password,
+        form.remember_me,
+    )
 }
 
 </script>
