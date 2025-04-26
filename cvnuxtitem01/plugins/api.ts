@@ -24,7 +24,29 @@ export default defineNuxtPlugin((nuxtApp)=>{
             },
 
             onResponse({ response }):void{
-
+                // console.log(response)
+                const { code, data, message } = response._data
+                if (code === 401){
+                    auth.clear()
+                    navigateTo('/welcome/login')
+                    ElMessage.warning(message || '登录过期，请重新登录')
+                }
+                if (code !== 200){
+                    switch (code){
+                        case 400:
+                            ElMessage.warning('请求参数错误');
+                            break
+                        case 404:
+                            ElMessage.warning('请求的资源不存在');
+                            showError({ statusCode: 404, statusMessage: '请求的资源不存在' });
+                            break
+                        case 500:
+                            showError({ statusCode: 500, statusMessage: '服务器异常' });
+                            break
+                        default:
+                            throw new FetchError(message || '未知错误,请联系管理员')
+                    }
+                }
             },
 
             onResponseError({ response }){
