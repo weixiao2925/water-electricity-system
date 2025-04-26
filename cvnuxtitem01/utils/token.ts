@@ -100,5 +100,6 @@ export const accessHeader = (event?: H3Event):Record<string, string> => {
     return auth  ? { 'Authorization': `Bearer ${auth .token}` } : {};
 }
 
-export const isUnauthorized = ():boolean => !takeAccessToken()
+export const isUnauthorized = (event?: H3Event): boolean =>
+    !takeAccessToken(event)
 
