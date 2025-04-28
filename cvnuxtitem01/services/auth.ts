@@ -2,9 +2,11 @@ import { useNuxtApp } from "#app";
 import {useAuthStore} from "~/store/auth";
 import type {AuthToken} from "~/utils/token";
 import type {LocationQueryValue} from "#vue-router";
+import type {H3Event} from "h3";
 
 export function useAuthService() {
     const { $api } = useNuxtApp();
+    const authStore = useAuthStore()
     return {
         login: async (username: string, password: string, remember: boolean) =>{
             const formData = new URLSearchParams();
@@ -15,7 +17,6 @@ export function useAuthService() {
                 formData,
                 {headers: { 'Content-Type': 'application/x-www-form-urlencoded' }}
             )
-            const authStore = useAuthStore()
             const route = useRoute()
             // console.log(data)
             const access: AuthToken = {token: data.data.token, expire: data.data.expire, role: data.data.role}
@@ -26,7 +27,17 @@ export function useAuthService() {
             navigateTo(redirect as string)
             // console.log(authStore.accessToken)
             return data
-        }
+        },
+        logout: async (event?: H3Event) => {
+            try {
+                await $api.post('/api/auth/logout')
+                authStore.clear(event)
+                navigateTo('/welcome')
+                ElMessage.success('退出登录成功，欢迎再次使用');
+            }catch(error){
+                throw error
+            }
 
+        }
     }
 }
