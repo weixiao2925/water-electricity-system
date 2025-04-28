@@ -12,6 +12,13 @@ public class Const {
     //用户id（在拦截器时就存在了setAttribute里面）
     public static final String ATTR_USER_ID="user_id:";
 
+    //---用户角色
+    public static final String ROLE_DEFAULT="user";
+    public static final String ROLE_ADMIN="admin";
+
+    //用户封禁
+    public static final String BANNED_BLOCK="banned:block:";
+
     //跨域拦截器的优先级
     public static final int ORDER_CORS=-102;
 

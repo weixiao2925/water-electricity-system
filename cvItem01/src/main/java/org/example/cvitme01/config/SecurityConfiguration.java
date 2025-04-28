@@ -3,11 +3,13 @@ package org.example.cvitme01.config;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.example.cvitme01.entity.RestBean;
 import org.example.cvitme01.entity.dto.Account;
 import org.example.cvitme01.entity.vo.response.AuthorizeVO;
 import org.example.cvitme01.filter.JwtAuthorizeFilter;
 import org.example.cvitme01.service.AccountService;
+import org.example.cvitme01.utils.Const;
 import org.example.cvitme01.utils.JwtUtils;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -24,6 +26,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import java.io.IOException;
 import java.io.PrintWriter;
 
+@Slf4j
 @Configuration
 @RequiredArgsConstructor
 public class SecurityConfiguration {
@@ -39,14 +42,14 @@ public class SecurityConfiguration {
                 //路由管理
                 .authorizeHttpRequests(conf->conf
                         .requestMatchers("/api/auth/**").permitAll()//允许这个路径的路由通过（可直接访问）
-                        .requestMatchers("/api/user/**").permitAll()//允许这个路径的路由通过（可直接访问）
+//                        .requestMatchers("/api/user/**").permitAll()//允许这个路径的路由通过（可直接访问）
                         .requestMatchers(
                                 "/swagger-ui.html",
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**",
                                 "/v3/api-docs.yaml"
                         ).permitAll()
-                        .anyRequest().authenticated()//其他的要验证后访问
+                        .anyRequest().hasAnyRole(Const.ROLE_DEFAULT, Const.ROLE_ADMIN)//其他的验证之后访问
                 )
                 //登录
                 .formLogin(conf->conf
@@ -112,6 +115,7 @@ public class SecurityConfiguration {
         response.setContentType("application/json;charset=UTF-8");//返回值的字符编码
         PrintWriter writer = response.getWriter();
         String authorization=request.getHeader("Authorization");//获取Authorization请求头中的jwt信息
+        log.warn(authorization);
         if (jwtUtils.invalidateJwt(authorization)){
             writer.write(RestBean.success().asJsonString());
         }else {
