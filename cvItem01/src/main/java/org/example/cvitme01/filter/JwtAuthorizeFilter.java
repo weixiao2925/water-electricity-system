@@ -45,7 +45,7 @@ public class JwtAuthorizeFilter extends OncePerRequestFilter {
                  *  credentials：通常是密码，但在这里使用JWT作为认证方式，所以密码不需要，用null代替。
                  *  authorities：用户的权限集，是UserDetails获取的。
                  */
-                logger.error(jwt.getClaims());
+//                logger.error(jwt.getClaims());
                 UsernamePasswordAuthenticationToken authentication=
                         new UsernamePasswordAuthenticationToken(user,null,user.getAuthorities());
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
