@@ -64,7 +64,9 @@ export const storeAccessToken = (
 }
 
 export const takeAccessToken = (event?: H3Event): AuthToken | null => {
-    if (tokenCache) return tokenCache
+    if (tokenCache && new Date(tokenCache.expire) > new Date()) return tokenCache
+
+    tokenCache = null
 
     let tokenStr:string | null = getCookie(TokenKey.Access, event)
 
