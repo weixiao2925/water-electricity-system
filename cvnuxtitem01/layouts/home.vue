@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import {useAuthService} from "~/services/auth";
+import {isRole} from "~/utils/role";
+import {Role} from "~/utils/constants";
 
 const router = useRouter()
 const route = useRoute()
@@ -17,6 +19,7 @@ const menuItems: MenuItem[] = [
     { path: '/home/meters', icon: '🔧', label: '我的表计' },
     { path: '/home/bills', icon: '📃', label: '账单中心' }
 ];
+const isAdminPage = computed(() :boolean => route.fullPath.startsWith('/admin'));
 
 const logout = ():void =>{
     const event = useRequestEvent()
@@ -67,27 +70,36 @@ onMounted(() => {
                 <div class="search">
                     <input type="text" placeholder="搜索..." />
                 </div>
-
-                    <div class="user">
-                        <span class="user-name">用户名</span>
-                        <el-dropdown>
-                        <div class="avatar">👤</div>
-                            <template #dropdown >
-                                <el-dropdown-item @click="goTo('/home/profile')">
-                                    <el-icon><ElIconHouse/></el-icon>
-                                    个人信息
-                                </el-dropdown-item>
-                                <el-dropdown-item>
-                                    <el-icon><ElIconHouse/></el-icon>
-                                    个人信息
-                                </el-dropdown-item>
-                                <el-dropdown-item divided @click="logout">
-                                    <el-icon><ElIconBack/></el-icon>
-                                    退出登录
-                                </el-dropdown-item>
-                            </template>
-                        </el-dropdown>
-                    </div>
+                <div class="user">
+                    <template v-if="isRole(Role.Admin)">
+                        <el-button type="danger" size="small"
+                                   @click="router.push('/admin')"
+                                   v-if="!isAdminPage">
+                            前往管理端
+                            <el-icon style="margin-left: 5px;">
+                                <ElIconRight/>
+                            </el-icon>
+                        </el-button>
+                    </template>
+                    <span class="user-name">用户名</span>
+                    <el-dropdown>
+                    <div class="avatar">👤</div>
+                        <template #dropdown >
+                            <el-dropdown-item @click="goTo('/home/profile')">
+                                <el-icon><ElIconHouse/></el-icon>
+                                个人信息
+                            </el-dropdown-item>
+                            <el-dropdown-item>
+                                <el-icon><ElIconHouse/></el-icon>
+                                个人信息
+                            </el-dropdown-item>
+                            <el-dropdown-item divided @click="logout">
+                                <el-icon><ElIconBack/></el-icon>
+                                退出登录
+                            </el-dropdown-item>
+                        </template>
+                    </el-dropdown>
+                </div>
             </header>
             <main class="main-content">
                 <slot />
@@ -208,6 +220,7 @@ body {
 .user {
     display: flex;
     align-items: center;
+    gap: 5px;
 }
 
 .user-name {
