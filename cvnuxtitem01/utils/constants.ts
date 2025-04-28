@@ -12,3 +12,9 @@ export const COOKIE_PREFIX:string = 'myapp_'
 export enum TokenKey {
     Access = 'access_token',
 }
+
+// 角色相关
+export enum Role{
+    Admin = 'admin',
+    User = 'user',
+}

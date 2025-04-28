@@ -1,9 +1,3 @@
-
-export enum Role{
-    Admin = 'admin',
-    User = 'user',
-}
-
 export const currentRole = ():Role | null => {
     return takeAccessToken()?.role as Role || null
 }
