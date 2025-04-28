@@ -6,6 +6,22 @@ export default defineNuxtConfig({
   },
   compatibilityDate: '2024-11-01',
   devtools: { enabled: true },
+  app:{
+    // pageTransition:{name: 'page', mode: 'out-in'},
+    head: {
+      title: 'CVNUXT',
+      meta: [
+        { name: 'description', content: 'CVNUXT' },
+        { name: 'viewport', content: 'width=device-width, initial-scale=1' },
+        { charset: 'utf-8' },
+        { name: 'theme-color', content: '#ffffff' },
+      ],
+      link: [
+        { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' },
+        { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap' }
+      ],
+    }
+  },
   modules: [
       '@element-plus/nuxt',
     [
