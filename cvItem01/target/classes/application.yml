@@ -12,7 +12,7 @@ spring:
   mail:
     host: smtp.163.com
     username: xiamulan2925@163.com
-    password: VZZAYGPEQFGSJDIO
+    password: TTQbG3ANADiSczdJ
   data:
     redis:
       host: localhost
