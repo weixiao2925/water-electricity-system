@@ -16,6 +16,7 @@ export default defineNuxtPlugin((nuxtApp)=>{
                           Authorization: `Bearer ${auth.accessToken.token}`
                    })
                }
+               // console.log(getCookie(TokenKey.Access))
             },
 
             onRequestError({ error}):void{
@@ -32,9 +33,10 @@ export default defineNuxtPlugin((nuxtApp)=>{
                     ElMessage.warning(message || '登录过期，请重新登录')
                 }
                 if (code !== 200){
+                    let errorMessage: string = message || '未知错误,请联系管理员'
                     switch (code){
                         case 400:
-                            ElMessage.warning('请求参数错误');
+                            ElMessage.warning(errorMessage || '请求参数错误');
                             break
                         case 404:
                             ElMessage.warning('请求的资源不存在');
@@ -46,12 +48,13 @@ export default defineNuxtPlugin((nuxtApp)=>{
                         default:
                             throw new FetchError(message || '未知错误,请联系管理员')
                     }
+                    throw new FetchError(errorMessage)
                 }
             },
 
             onResponseError({ response }){
-                console.log(response)
-
+                // console.log(response)
+                let errorMessage: string = response._data.message || '未知错误,请联系管理员'
                 if (response.status === 401){
                     auth.clear()
                     navigateTo('/welcome/login')
@@ -60,7 +63,7 @@ export default defineNuxtPlugin((nuxtApp)=>{
 
                 switch (response.status){
                     case 400:
-                        ElMessage.warning('请求参数错误');
+                        ElMessage.warning(errorMessage || '请求参数错误');
                         break
                     case 404:
                         ElMessage.warning('请求的资源不存在');
@@ -72,6 +75,7 @@ export default defineNuxtPlugin((nuxtApp)=>{
                     default:
                         throw new FetchError(response._data || '未知错误,请联系管理员')
                 }
+                throw new FetchError(errorMessage)
             }
 
         },
