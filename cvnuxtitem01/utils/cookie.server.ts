@@ -1,4 +1,3 @@
-import { COOKIE_PREFIX} from "~/utils/constants";
 import { getCookie as h3GetCookie, setCookie as h3SetCookie, deleteCookie as h3DeleteCookie } from 'h3'
 import type { H3Event } from 'h3'
 

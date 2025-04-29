@@ -1,7 +1,5 @@
-import {defineStore} from "pinia";
 import {H3Event} from "h3";
-import {takeAccessToken} from "~/utils/token";
-
+// import { defineStore } from "pinia";
 export const useAuthStore = defineStore('auth', {
     state: ()=>({
         accessToken: takeAccessToken(useRequestEvent()) as AuthToken | null

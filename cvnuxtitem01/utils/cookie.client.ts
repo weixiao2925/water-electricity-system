@@ -1,4 +1,3 @@
-import { COOKIE_PREFIX} from "~/utils/constants";
 
 const isClient:boolean = typeof window !== 'undefined'
 

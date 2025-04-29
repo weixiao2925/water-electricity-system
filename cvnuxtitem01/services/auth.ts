@@ -1,6 +1,5 @@
 import { useNuxtApp } from "#app";
 import {useAuthStore} from "~/store/auth";
-import type {AuthToken} from "~/utils/token";
 import type {LocationQueryValue} from "#vue-router";
 import type {H3Event} from "h3";
 

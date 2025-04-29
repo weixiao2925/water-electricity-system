@@ -2,7 +2,6 @@
  * 通用加密工具
  */
 import CryptoJS from 'crypto-js'
-import { AES_SECRET_KEY } from '~/utils/constants'
 
 
 // AES加密
