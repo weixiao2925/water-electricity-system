@@ -2,6 +2,7 @@
 import {isRole} from "~/utils/role";
 import {Role} from "~/utils/constants";
 import {useAuthService} from "~/services/auth";
+import {useUserStore} from "~/store/user";
 
 interface MenuItem {
     path: string;
@@ -11,6 +12,8 @@ interface MenuItem {
 
 const router = useRouter();
 const route = useRoute();
+const store = useUserStore()
+
 const isAdminPage = computed(() :boolean => route.fullPath.startsWith('/admin'));
 const adminMenuItems: MenuItem[] = [
     { path: '/admin/overview', icon: '📊', label: '系统概览' },
@@ -73,7 +76,7 @@ const logout = ():void =>{
               </el-icon>
             </el-button>
           </template>
-          <span class="user-name">管理员</span>
+          <span class="user-name">{{ store.user.username }}</span>
           <el-dropdown>
             <div class="avatar">👤</div>
             <template #dropdown>

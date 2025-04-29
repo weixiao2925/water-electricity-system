@@ -3,6 +3,8 @@
 import {Lock, Message} from "@element-plus/icons-vue";
 import type {FormRules} from "element-plus";
 import {useAuthService} from "~/services/auth";
+import {useUserService} from "~/services/user";
+import {useUserStore} from "~/store/user";
 
 interface LoginForm{
     username: string
@@ -11,7 +13,7 @@ interface LoginForm{
 }
 type ElFormInstance = InstanceType<typeof import('element-plus')['ElForm']>
 
-
+const store = useUserStore()
 const router = useRouter()
 const form = reactive<LoginForm>({
     username: '',
@@ -42,11 +44,24 @@ const submit = () =>{
 }
 
 const userLogin = () =>{
-    useAuthService().login(
-        form.username,
-        form.password,
-        form.remember_me,
-    )
+    useAuthService()
+        .login(
+            form.username,
+            form.password,
+            form.remember_me,
+        ).then((res)=>{
+            useUserService()
+                .apiUserInfo()
+                    .then((res)=>{
+                        // console.log(res.data)
+                        // setCookie(
+                        //     USER_INFO_PREFIX,
+                        //     JSON.stringify(res.data),
+                        //     form.remember_me ? { expireDays: 7 } : {}
+                        // )
+                        store.setUser(res.data, form.remember_me ? { expireDays: 7 } : {})
+                    })
+        })
 }
 
 </script>

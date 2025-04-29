@@ -2,9 +2,11 @@
 import {useAuthService} from "~/services/auth";
 import {isRole} from "~/utils/role";
 import {Role} from "~/utils/constants";
+import {useUserStore} from "~/store/user";
 
 const router = useRouter()
 const route = useRoute()
+const store = useUserStore()
 
 interface MenuItem {
     path: string;
@@ -81,7 +83,9 @@ onMounted(() => {
                             </el-icon>
                         </el-button>
                     </template>
-                    <span class="user-name">用户名</span>
+                    <span class="user-name">
+                        {{store.user.username}}
+                    </span>
                     <el-dropdown>
                     <div class="avatar">👤</div>
                         <template #dropdown >
