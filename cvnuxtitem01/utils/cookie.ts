@@ -1,7 +1,4 @@
 import type {H3Event} from "h3";
-import {setServerCookie} from "~/utils/cookie.server";
-import { encodeAES, decodeAES } from '~/utils/encrypt'
-import {setClientCookie} from "~/utils/cookie.client";
 
 interface CookieOptions{
     expireDays?: number
@@ -35,10 +32,17 @@ export function getCookie(
     return decodeAES(rawValue)
 }
 
-export function removeCookie(key: string, event?: H3Event):void{
+export function removeCookie(key: string, event?: H3Event): void{
     if (event) {
         removeServerCookie(event, key)
     } else {
         removeClientCookie(key)
+    }
+}
+
+export function removeAllCookies(event?: H3Event): void{
+    const keys: string[] = [USER_TOKEN, USER_INFO_PREFIX]
+    for (const key of keys){
+        removeCookie(key, event)
     }
 }
