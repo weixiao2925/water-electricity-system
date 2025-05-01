@@ -24,4 +24,6 @@ public interface Account {
 
     Date registerTime();
 
+    @OneToOne
+    AccountDetails details();
 }

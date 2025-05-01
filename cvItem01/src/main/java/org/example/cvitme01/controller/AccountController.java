@@ -24,4 +24,12 @@ public class AccountController {
                 ? RestBean.failure(400, "用户不存在")
                 : RestBean.success(vo);
     }
+
+    @GetMapping("/info-detail")
+    public RestBean<Account> getUserInfoDetail(@RequestAttribute(Const.ATTR_USER_ID) int id) {
+        Account accountWithDetails = accountService.findAccountWithDetailsById(id);
+        return accountWithDetails == null
+                ? RestBean.failure(400, "用户或详情不存在")
+                : RestBean.success(accountWithDetails);
+    }
 }
