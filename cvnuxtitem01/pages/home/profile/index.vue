@@ -5,7 +5,6 @@ import {useUserStore} from "~/store/user";
 import type {InfoForm, PasswordForm, UserInfo, ElFormInstance} from "~/types/home/profile/type";
 
 
-
 const useStore = useUserStore()
 const userData: UserInfo = reactive({
     id: -1,
@@ -86,8 +85,13 @@ const cancelEdit = () => {
 const saveUserInfo = () => {
     infoFormRef.value?.validate((valid: boolean) => {
         if (valid){
-            ElMessage.success('个人信息更新成功');
-            isEditing.value = false;
+            useUserService().apiUserInfoUpdate(userData).then(_ => {
+                // console.log(res.data)
+                refetchUserInfo()
+                ElMessage.success('个人信息更新成功');
+            }).finally(()=>{
+                isEditing.value = false;
+            })
         }else {
             ElMessage.error('请填有效的信息');
         }
@@ -352,14 +356,6 @@ onMounted(() => {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   text-align: center;
   margin-bottom: 20px;
-}
-
-.avatar-image {
-  width: 150px;
-  height: 150px;
-  border-radius: 50%;
-  object-fit: cover;
-  margin-bottom: 15px;
 }
 
 .avatar-upload {
