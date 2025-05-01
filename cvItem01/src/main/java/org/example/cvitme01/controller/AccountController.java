@@ -5,10 +5,7 @@ import org.example.cvitme01.entity.RestBean;
 import org.example.cvitme01.entity.dto.Account;
 import org.example.cvitme01.service.AccountService;
 import org.example.cvitme01.utils.Const;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestAttribute;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/user")
@@ -31,5 +28,13 @@ public class AccountController {
         return accountWithDetails == null
                 ? RestBean.failure(400, "用户或详情不存在")
                 : RestBean.success(accountWithDetails);
+    }
+
+    @PostMapping("/info-update")
+    public RestBean<Void> updateUserInfo(@RequestAttribute(Const.ATTR_USER_ID) int id,
+                                         @RequestBody Account account) {
+        return accountService.updateAccountInfo(id, account)
+                ? RestBean.success()
+                : RestBean.failure(400, "未知错误，请联系管理员");
     }
 }

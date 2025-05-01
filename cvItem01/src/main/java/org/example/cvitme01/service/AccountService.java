@@ -7,4 +7,5 @@ public interface AccountService extends UserDetailsService {
     Account findByUsername(String username);
     Account findAccountInfoById(Integer id);
     Account findAccountWithDetailsById(Integer id);
+    boolean updateAccountInfo(Integer id, Account account);
 }

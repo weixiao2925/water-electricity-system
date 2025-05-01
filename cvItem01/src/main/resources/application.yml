@@ -38,3 +38,4 @@ spring:
 jimmer:
   language: java
   show-sql: true
+  dialect: org.babyfish.jimmer.sql.dialect.MySqlDialect

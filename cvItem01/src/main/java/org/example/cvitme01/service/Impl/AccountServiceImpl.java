@@ -2,6 +2,7 @@ package org.example.cvitme01.service.Impl;
 
 import lombok.RequiredArgsConstructor;
 import org.babyfish.jimmer.sql.JSqlClient;
+import org.babyfish.jimmer.sql.ast.mutation.MutableUpdate;
 import org.babyfish.jimmer.sql.fetcher.Fetcher;
 import org.example.cvitme01.entity.dto.*;
 import org.example.cvitme01.repository.AccountRepository;
@@ -64,6 +65,29 @@ public class AccountServiceImpl implements AccountService {
                 .where(table.id().eq(Long.valueOf(id)))
                 .select(table.fetch(fetcher))
                 .fetchOneOrNull();
+    }
+
+    @Override
+    public boolean updateAccountInfo(Integer id, Account account) {
+        AccountTable table = AccountTable.$;
+
+        MutableUpdate update = sqlClient
+                .createUpdate(table)
+                .set(table.username(), account.username());
+
+        if (account.details() != null) {
+            update = update
+                    .set(table.details().gender(), account.details().gender())
+                    .set(table.details().phone(), account.details().phone())
+                    .set(table.details().qq(), account.details().qq())
+                    .set(table.details().wx(), account.details().wx())
+                    .set(table.details().desc(), account.details().desc())
+                    .set(table.details().address(), account.details().address());
+        }
+        int affectedRows = update
+                .where(table.id().eq(Long.valueOf(id)))
+                .execute();
+        return affectedRows > 0;
     }
 
     @Override
