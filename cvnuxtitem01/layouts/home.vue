@@ -34,6 +34,9 @@ const goTo = (where: string): void =>{
 }
 
 onMounted(() => {
+    if (!useRequestEvent()){
+        store.initUserFromCookie()
+    }
     if (route.path === '/home') {
         router.replace('/home/dashboard')
     }

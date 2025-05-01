@@ -32,6 +32,12 @@ const logout = ():void =>{
         .logout(event)
 }
 
+onMounted(()=>{
+    if (!useRequestEvent()){
+        store.initUserFromCookie()
+    }
+})
+
 </script>
 
 <template>

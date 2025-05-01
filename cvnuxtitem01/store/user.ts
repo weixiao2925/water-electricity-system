@@ -14,35 +14,16 @@ interface CookieOptions{
     event?: H3Event
 }
 
-function loadUserFromCookie(): UserInfo{
-    const defaultUser: UserInfo = {
-        id: null,
-        username: '',
-        email: '',
-        role: '',
-        avatar: '',
-        registerTime: ''
-    }
-    try {
-        const cookieValue = getCookie(USER_INFO_PREFIX)
-        if (cookieValue){
-            const parsedData = JSON.parse(cookieValue)
-            return {
-                ...defaultUser,
-                ...parsedData,
-                id: typeof parsedData.id === 'number' ? parsedData.id : defaultUser.id
-            }
-        }
-    }catch(error){
-        console.error(error)
-    }
-
-    return defaultUser
-}
-
 export const useUserStore = defineStore('user', {
     state:() => ({
-        user: loadUserFromCookie()
+        user: {
+            id: null,
+            username: '',
+            email: '',
+            role: '',
+            avatar: '',
+            registerTime: '',
+        } as UserInfo
     }),
     actions: {
         setUser(userData: UserInfo, options: CookieOptions = {}): void {
@@ -64,6 +45,19 @@ export const useUserStore = defineStore('user', {
             };
             // 同时清除 Cookie
             removeCookie(USER_INFO_PREFIX);
+        },
+        initUserFromCookie() {
+            try {
+                const cookieData = getCookie(USER_INFO_PREFIX);
+                if (cookieData) {
+                    const parsedData = JSON.parse(cookieData);
+                    if (parsedData && typeof parsedData === 'object') {
+                        this.user = { ...this.user, ...parsedData };
+                    }
+                }
+            } catch (e) {
+                console.error('解析用户信息失败', e);
+            }
         }
     }
 })
