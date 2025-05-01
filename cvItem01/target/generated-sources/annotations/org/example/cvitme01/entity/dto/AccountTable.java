@@ -6,6 +6,7 @@ import java.lang.Override;
 import java.lang.String;
 import java.util.Date;
 import org.babyfish.jimmer.internal.GeneratedBy;
+import org.babyfish.jimmer.sql.JoinType;
 import org.babyfish.jimmer.sql.ast.PropExpression;
 import org.babyfish.jimmer.sql.ast.impl.table.TableImplementor;
 import org.babyfish.jimmer.sql.ast.table.TableEx;
@@ -66,6 +67,29 @@ public class AccountTable extends AbstractTypedTable<Account> implements Account
     @Override
     public PropExpression.Dt<Date> registerTime() {
         return __get(AccountProps.REGISTER_TIME.unwrap());
+    }
+
+    @Override
+    public AccountDetailsTable details() {
+        __beforeJoin();
+        if (raw != null) {
+            return new AccountDetailsTable(raw.joinImplementor(AccountProps.DETAILS.unwrap()));
+        }
+        return new AccountDetailsTable(joinOperation(AccountProps.DETAILS.unwrap()));
+    }
+
+    @Override
+    public AccountDetailsTable details(JoinType joinType) {
+        __beforeJoin();
+        if (raw != null) {
+            return new AccountDetailsTable(raw.joinImplementor(AccountProps.DETAILS.unwrap(), joinType));
+        }
+        return new AccountDetailsTable(joinOperation(AccountProps.DETAILS.unwrap(), joinType));
+    }
+
+    @Override
+    public PropExpression.Num<Long> detailsId() {
+        return __getAssociatedId(AccountProps.DETAILS.unwrap());
     }
 
     @Override

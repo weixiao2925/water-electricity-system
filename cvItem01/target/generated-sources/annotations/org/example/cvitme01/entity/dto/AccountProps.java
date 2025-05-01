@@ -6,6 +6,7 @@ import java.util.Date;
 import org.babyfish.jimmer.internal.GeneratedBy;
 import org.babyfish.jimmer.meta.ImmutableType;
 import org.babyfish.jimmer.meta.TypedProp;
+import org.babyfish.jimmer.sql.JoinType;
 import org.babyfish.jimmer.sql.ast.PropExpression;
 import org.babyfish.jimmer.sql.ast.table.Props;
 import org.babyfish.jimmer.sql.ast.table.PropsFor;
@@ -36,6 +37,9 @@ public interface AccountProps extends Props {
     TypedProp.Scalar<Account, Date> REGISTER_TIME = 
         TypedProp.scalar(ImmutableType.get(Account.class).getProp("registerTime"));
 
+    TypedProp.Reference<Account, AccountDetails> DETAILS = 
+        TypedProp.reference(ImmutableType.get(Account.class).getProp("details"));
+
     PropExpression.Num<Long> id();
 
     PropExpression.Str username();
@@ -49,4 +53,10 @@ public interface AccountProps extends Props {
     PropExpression.Str avatar();
 
     PropExpression.Dt<Date> registerTime();
+
+    AccountDetailsTable details();
+
+    AccountDetailsTable details(JoinType joinType);
+
+    PropExpression.Num<Long> detailsId();
 }

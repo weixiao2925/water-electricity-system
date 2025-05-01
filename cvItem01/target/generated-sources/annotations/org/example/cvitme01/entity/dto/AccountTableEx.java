@@ -35,6 +35,22 @@ public class AccountTableEx extends AccountTable implements TableEx<Account> {
         super(base, joinDisabledReason);
     }
 
+    public AccountDetailsTableEx details() {
+        __beforeJoin();
+        if (raw != null) {
+            return new AccountDetailsTableEx(raw.joinImplementor(AccountProps.DETAILS.unwrap()));
+        }
+        return new AccountDetailsTableEx(joinOperation(AccountProps.DETAILS.unwrap()));
+    }
+
+    public AccountDetailsTableEx details(JoinType joinType) {
+        __beforeJoin();
+        if (raw != null) {
+            return new AccountDetailsTableEx(raw.joinImplementor(AccountProps.DETAILS.unwrap(), joinType));
+        }
+        return new AccountDetailsTableEx(joinOperation(AccountProps.DETAILS.unwrap(), joinType));
+    }
+
     @Override
     public AccountTableEx asTableEx() {
         return this;

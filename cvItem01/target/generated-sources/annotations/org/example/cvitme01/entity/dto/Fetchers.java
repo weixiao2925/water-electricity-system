@@ -5,4 +5,6 @@ import org.babyfish.jimmer.internal.GeneratedBy;
 @GeneratedBy
 public interface Fetchers {
     AccountFetcher ACCOUNT_FETCHER = AccountFetcher.$;
+
+    AccountDetailsFetcher ACCOUNT_DETAILS_FETCHER = AccountDetailsFetcher.$;
 }

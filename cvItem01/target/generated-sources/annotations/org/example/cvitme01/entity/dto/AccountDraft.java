@@ -32,6 +32,7 @@ import org.babyfish.jimmer.runtime.DraftSpi;
 import org.babyfish.jimmer.runtime.ImmutableSpi;
 import org.babyfish.jimmer.runtime.Internal;
 import org.babyfish.jimmer.runtime.Visibility;
+import org.babyfish.jimmer.sql.OneToOne;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -62,6 +63,25 @@ public interface AccountDraft extends Account, Draft {
     @OldChain
     AccountDraft setRegisterTime(Date registerTime);
 
+    AccountDetailsDraft details();
+
+    AccountDetailsDraft details(boolean autoCreate);
+
+    @OldChain
+    AccountDraft setDetails(AccountDetails details);
+
+    @JsonIgnore
+    long detailsId();
+
+    @OldChain
+    AccountDraft setDetailsId(long detailsId);
+
+    @OldChain
+    AccountDraft applyDetails(DraftConsumer<AccountDetailsDraft> block);
+
+    @OldChain
+    AccountDraft applyDetails(AccountDetails base, DraftConsumer<AccountDetailsDraft> block);
+
     @GeneratedBy(
             type = Account.class
     )
@@ -82,6 +102,8 @@ public interface AccountDraft extends Account, Draft {
 
         public static final int SLOT_REGISTER_TIME = 6;
 
+        public static final int SLOT_DETAILS = 7;
+
         public static final ImmutableType TYPE = ImmutableType
             .newBuilder(
                 "0.9.76",
@@ -96,6 +118,7 @@ public interface AccountDraft extends Account, Draft {
             .add(SLOT_ROLE, "role", ImmutablePropCategory.SCALAR, String.class, false)
             .add(SLOT_AVATAR, "avatar", ImmutablePropCategory.SCALAR, String.class, false)
             .add(SLOT_REGISTER_TIME, "registerTime", ImmutablePropCategory.SCALAR, Date.class, false)
+            .add(SLOT_DETAILS, "details", OneToOne.class, AccountDetails.class, false)
             .build();
 
         private Producer() {
@@ -115,7 +138,7 @@ public interface AccountDraft extends Account, Draft {
         @GeneratedBy(
                 type = Account.class
         )
-        @JsonPropertyOrder({"dummyPropForJacksonError__", "id", "username", "password", "email", "role", "avatar", "registerTime"})
+        @JsonPropertyOrder({"dummyPropForJacksonError__", "id", "username", "password", "email", "role", "avatar", "registerTime", "details"})
         public abstract static class Implementor implements Account, ImmutableSpi {
             @Override
             public final Object __get(PropId prop) {
@@ -137,6 +160,8 @@ public interface AccountDraft extends Account, Draft {
                     		return avatar();
                     case SLOT_REGISTER_TIME:
                     		return registerTime();
+                    case SLOT_DETAILS:
+                    		return details();
                     default: throw new IllegalArgumentException("Illegal property name for \"org.example.cvitme01.entity.dto.Account\": \"" + prop + "\"");
                 }
             }
@@ -158,6 +183,8 @@ public interface AccountDraft extends Account, Draft {
                     		return avatar();
                     case "registerTime":
                     		return registerTime();
+                    case "details":
+                    		return details();
                     default: throw new IllegalArgumentException("Illegal property name for \"org.example.cvitme01.entity.dto.Account\": \"" + prop + "\"");
                 }
             }
@@ -188,6 +215,10 @@ public interface AccountDraft extends Account, Draft {
 
             public final Date getRegisterTime() {
                 return registerTime();
+            }
+
+            public final AccountDetails getDetails() {
+                return details();
             }
 
             @Override
@@ -221,6 +252,8 @@ public interface AccountDraft extends Account, Draft {
             String __avatarValue;
 
             Date __registerTimeValue;
+
+            AccountDetails __detailsValue;
 
             @Override
             @JsonIgnore
@@ -286,6 +319,15 @@ public interface AccountDraft extends Account, Draft {
             }
 
             @Override
+            @JsonIgnore
+            public AccountDetails details() {
+                if (__detailsValue == null) {
+                    throw new UnloadedException(Account.class, "details");
+                }
+                return __detailsValue;
+            }
+
+            @Override
             public Impl clone() {
                 try {
                     return (Impl)super.clone();
@@ -314,6 +356,8 @@ public interface AccountDraft extends Account, Draft {
                     		return __avatarValue != null;
                     case SLOT_REGISTER_TIME:
                     		return __registerTimeValue != null;
+                    case SLOT_DETAILS:
+                    		return __detailsValue != null;
                     default: throw new IllegalArgumentException("Illegal property name for \"org.example.cvitme01.entity.dto.Account\": \"" + prop + "\"");
                 }
             }
@@ -335,6 +379,8 @@ public interface AccountDraft extends Account, Draft {
                     		return __avatarValue != null;
                     case "registerTime":
                     		return __registerTimeValue != null;
+                    case "details":
+                    		return __detailsValue != null;
                     default: throw new IllegalArgumentException("Illegal property name for \"org.example.cvitme01.entity.dto.Account\": \"" + prop + "\"");
                 }
             }
@@ -362,6 +408,8 @@ public interface AccountDraft extends Account, Draft {
                     		return __visibility.visible(SLOT_AVATAR);
                     case SLOT_REGISTER_TIME:
                     		return __visibility.visible(SLOT_REGISTER_TIME);
+                    case SLOT_DETAILS:
+                    		return __visibility.visible(SLOT_DETAILS);
                     default: return true;
                 }
             }
@@ -386,6 +434,8 @@ public interface AccountDraft extends Account, Draft {
                     		return __visibility.visible(SLOT_AVATAR);
                     case "registerTime":
                     		return __visibility.visible(SLOT_REGISTER_TIME);
+                    case "details":
+                    		return __visibility.visible(SLOT_DETAILS);
                     default: return true;
                 }
             }
@@ -416,6 +466,9 @@ public interface AccountDraft extends Account, Draft {
                 if (__registerTimeValue != null) {
                     hash = 31 * hash + __registerTimeValue.hashCode();
                 }
+                if (__detailsValue != null) {
+                    hash = 31 * hash + __detailsValue.hashCode();
+                }
                 return hash;
             }
 
@@ -441,6 +494,9 @@ public interface AccountDraft extends Account, Draft {
                 }
                 if (__registerTimeValue != null) {
                     hash = 31 * hash + System.identityHashCode(__registerTimeValue);
+                }
+                if (__detailsValue != null) {
+                    hash = 31 * hash + System.identityHashCode(__detailsValue);
                 }
                 return hash;
             }
@@ -527,6 +583,16 @@ public interface AccountDraft extends Account, Draft {
                 if (__registerTimeLoaded && !Objects.equals(__registerTimeValue, __other.registerTime())) {
                     return false;
                 }
+                if (__isVisible(PropId.byIndex(SLOT_DETAILS)) != __other.__isVisible(PropId.byIndex(SLOT_DETAILS))) {
+                    return false;
+                }
+                boolean __detailsLoaded = __detailsValue != null;
+                if (__detailsLoaded != __other.__isLoaded(PropId.byIndex(SLOT_DETAILS))) {
+                    return false;
+                }
+                if (__detailsLoaded && !Objects.equals(__detailsValue, __other.details())) {
+                    return false;
+                }
                 return true;
             }
 
@@ -603,6 +669,16 @@ public interface AccountDraft extends Account, Draft {
                     return false;
                 }
                 if (__registerTimeLoaded && __registerTimeValue != __other.registerTime()) {
+                    return false;
+                }
+                if (__isVisible(PropId.byIndex(SLOT_DETAILS)) != __other.__isVisible(PropId.byIndex(SLOT_DETAILS))) {
+                    return false;
+                }
+                boolean __detailsLoaded = __detailsValue != null;
+                if (__detailsLoaded != __other.__isLoaded(PropId.byIndex(SLOT_DETAILS))) {
+                    return false;
+                }
+                if (__detailsLoaded && __detailsValue != __other.details()) {
                     return false;
                 }
                 return true;
@@ -831,6 +907,61 @@ public interface AccountDraft extends Account, Draft {
                 return this;
             }
 
+            @Override
+            @JsonIgnore
+            public AccountDetailsDraft details() {
+                return __ctx.toDraftObject((__modified!= null ? __modified : __base).details());
+            }
+
+            @Override
+            public AccountDetailsDraft details(boolean autoCreate) {
+                if (autoCreate && (!__isLoaded(PropId.byIndex(SLOT_DETAILS)))) {
+                    setDetails(AccountDetailsDraft.$.produce(null, null));
+                }
+                return __ctx.toDraftObject((__modified!= null ? __modified : __base).details());
+            }
+
+            @Override
+            public AccountDraft setDetails(AccountDetails details) {
+                if (__resolved != null) {
+                    throw new IllegalStateException("The current draft has been resolved so it cannot be modified");
+                }
+                if (details == null) {
+                    throw new IllegalArgumentException(
+                        "'details' cannot be null, please specify non-null value or use nullable annotation to decorate this property"
+                    );
+                }
+                Impl __tmpModified = __modified();
+                __tmpModified.__detailsValue = details;
+                return this;
+            }
+
+            @JsonIgnore
+            @Override
+            public long detailsId() {
+                return details().id();
+            }
+
+            @OldChain
+            @Override
+            public AccountDraft setDetailsId(long detailsId) {
+                details(true).setId(Objects.requireNonNull(detailsId, "\"details\" cannot be null"));
+                return this;
+            }
+
+            @Override
+            public AccountDraft applyDetails(DraftConsumer<AccountDetailsDraft> block) {
+                applyDetails(null, block);
+                return this;
+            }
+
+            @Override
+            public AccountDraft applyDetails(AccountDetails base,
+                    DraftConsumer<AccountDetailsDraft> block) {
+                setDetails(AccountDetailsDraft.$.produce(base, block));
+                return this;
+            }
+
             @SuppressWarnings("all")
             @Override
             public void __set(PropId prop, Object value) {
@@ -855,6 +986,8 @@ public interface AccountDraft extends Account, Draft {
                     		setAvatar((String)value);break;
                     case SLOT_REGISTER_TIME:
                     		setRegisterTime((Date)value);break;
+                    case SLOT_DETAILS:
+                    		setDetails((AccountDetails)value);break;
                     default: throw new IllegalArgumentException("Illegal property id for \"org.example.cvitme01.entity.dto.Account\": \"" + prop + "\"");
                 }
             }
@@ -879,6 +1012,8 @@ public interface AccountDraft extends Account, Draft {
                     		setAvatar((String)value);break;
                     case "registerTime":
                     		setRegisterTime((Date)value);break;
+                    case "details":
+                    		setDetails((AccountDetails)value);break;
                     default: throw new IllegalArgumentException("Illegal property name for \"org.example.cvitme01.entity.dto.Account\": \"" + prop + "\"");
                 }
             }
@@ -893,7 +1028,7 @@ public interface AccountDraft extends Account, Draft {
                     if (visible) {
                         return;
                     }
-                    __modified().__visibility = __visibility = Visibility.of(7);
+                    __modified().__visibility = __visibility = Visibility.of(8);
                 }
                 int __propIndex = prop.asIndex();
                 switch (__propIndex) {
@@ -914,6 +1049,8 @@ public interface AccountDraft extends Account, Draft {
                     		__visibility.show(SLOT_AVATAR, visible);break;
                     case SLOT_REGISTER_TIME:
                     		__visibility.show(SLOT_REGISTER_TIME, visible);break;
+                    case SLOT_DETAILS:
+                    		__visibility.show(SLOT_DETAILS, visible);break;
                     default: throw new IllegalArgumentException(
                                 "Illegal property id for \"org.example.cvitme01.entity.dto.Account\": \"" + 
                                 prop + 
@@ -932,7 +1069,7 @@ public interface AccountDraft extends Account, Draft {
                     if (visible) {
                         return;
                     }
-                    __modified().__visibility = __visibility = Visibility.of(7);
+                    __modified().__visibility = __visibility = Visibility.of(8);
                 }
                 switch (prop) {
                     case "id":
@@ -949,6 +1086,8 @@ public interface AccountDraft extends Account, Draft {
                     		__visibility.show(SLOT_AVATAR, visible);break;
                     case "registerTime":
                     		__visibility.show(SLOT_REGISTER_TIME, visible);break;
+                    case "details":
+                    		__visibility.show(SLOT_DETAILS, visible);break;
                     default: throw new IllegalArgumentException(
                                 "Illegal property name for \"org.example.cvitme01.entity.dto.Account\": \"" + 
                                 prop + 
@@ -982,6 +1121,8 @@ public interface AccountDraft extends Account, Draft {
                     		__modified().__avatarValue = null;break;
                     case SLOT_REGISTER_TIME:
                     		__modified().__registerTimeValue = null;break;
+                    case SLOT_DETAILS:
+                    		__modified().__detailsValue = null;break;
                     default: throw new IllegalArgumentException("Illegal property id for \"org.example.cvitme01.entity.dto.Account\": \"" + prop + "\", it does not exist or its loaded state is not controllable");
                 }
             }
@@ -1007,6 +1148,8 @@ public interface AccountDraft extends Account, Draft {
                     		__modified().__avatarValue = null;break;
                     case "registerTime":
                     		__modified().__registerTimeValue = null;break;
+                    case "details":
+                    		__modified().__detailsValue = null;break;
                     default: throw new IllegalArgumentException("Illegal property name for \"org.example.cvitme01.entity.dto.Account\": \"" + prop + "\", it does not exist or its loaded state is not controllable");
                 }
             }
@@ -1028,6 +1171,19 @@ public interface AccountDraft extends Account, Draft {
                 try {
                     Implementor base = __base;
                     Impl __tmpModified = __modified;
+                    if (__tmpModified == null) {
+                        if (base.__isLoaded(PropId.byIndex(SLOT_DETAILS))) {
+                            AccountDetails oldValue = base.details();
+                            AccountDetails newValue = __ctx.resolveObject(oldValue);
+                            if (oldValue != newValue) {
+                                setDetails(newValue);
+                            }
+                        }
+                        __tmpModified = __modified;
+                    }
+                    else {
+                        __tmpModified.__detailsValue = __ctx.resolveObject(__tmpModified.__detailsValue);
+                    }
                     if (__base != null && __tmpModified == null) {
                         this.__resolved = base;
                         return base;
@@ -1115,6 +1271,13 @@ public interface AccountDraft extends Account, Draft {
         public Builder registerTime(@NotNull Date registerTime) {
             if (registerTime != null) {
                 __draft.setRegisterTime(registerTime);
+            }
+            return this;
+        }
+
+        public Builder details(@NotNull AccountDetails details) {
+            if (details != null) {
+                __draft.setDetails(details);
             }
             return this;
         }

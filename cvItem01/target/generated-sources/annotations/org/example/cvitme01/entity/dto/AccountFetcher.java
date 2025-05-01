@@ -1,6 +1,7 @@
 package org.example.cvitme01.entity.dto;
 
 import java.lang.Override;
+import java.util.function.Consumer;
 import org.babyfish.jimmer.internal.GeneratedBy;
 import org.babyfish.jimmer.lang.NewChain;
 import org.babyfish.jimmer.meta.ImmutableProp;
@@ -8,6 +9,8 @@ import org.babyfish.jimmer.sql.ast.table.Table;
 import org.babyfish.jimmer.sql.fetcher.Fetcher;
 import org.babyfish.jimmer.sql.fetcher.FieldConfig;
 import org.babyfish.jimmer.sql.fetcher.IdOnlyFetchType;
+import org.babyfish.jimmer.sql.fetcher.ReferenceFetchType;
+import org.babyfish.jimmer.sql.fetcher.ReferenceFieldConfig;
 import org.babyfish.jimmer.sql.fetcher.impl.FetcherImpl;
 import org.babyfish.jimmer.sql.fetcher.spi.AbstractTypedFetcher;
 
@@ -95,6 +98,38 @@ public class AccountFetcher extends AbstractTypedFetcher<Account, AccountFetcher
     @NewChain
     public AccountFetcher registerTime(boolean enabled) {
         return enabled ? add("registerTime") : remove("registerTime");
+    }
+
+    @NewChain
+    public AccountFetcher details() {
+        return add("details");
+    }
+
+    @NewChain
+    public AccountFetcher details(boolean enabled) {
+        return enabled ? add("details") : remove("details");
+    }
+
+    @NewChain
+    public AccountFetcher details(Fetcher<AccountDetails> childFetcher) {
+        return add("details", childFetcher);
+    }
+
+    @NewChain
+    public AccountFetcher details(IdOnlyFetchType idOnlyFetchType) {
+        return add("details", idOnlyFetchType);
+    }
+
+    @NewChain
+    public AccountFetcher details(Fetcher<AccountDetails> childFetcher,
+            Consumer<ReferenceFieldConfig<AccountDetails, AccountDetailsTable>> fieldConfig) {
+        return add("details", childFetcher, fieldConfig);
+    }
+
+    @NewChain
+    public AccountFetcher details(ReferenceFetchType fetchType,
+            Fetcher<AccountDetails> childFetcher) {
+        return details(childFetcher, cfg -> cfg.fetchType(fetchType));
     }
 
     @Override

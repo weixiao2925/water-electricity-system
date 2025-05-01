@@ -12,4 +12,13 @@ public interface Immutables {
     static Account createAccount(Account base, DraftConsumer<AccountDraft> block) {
         return AccountDraft.$.produce(base, block);
     }
+
+    static AccountDetails createAccountDetails(DraftConsumer<AccountDetailsDraft> block) {
+        return AccountDetailsDraft.$.produce(block);
+    }
+
+    static AccountDetails createAccountDetails(AccountDetails base,
+            DraftConsumer<AccountDetailsDraft> block) {
+        return AccountDetailsDraft.$.produce(base, block);
+    }
 }
