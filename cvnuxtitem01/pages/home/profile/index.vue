@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import {useUserService} from "~/services/user";
 import type {FormRules} from "element-plus";
+import {useUserStore} from "~/store/user";
 
 interface Detail{
     gender: number,
@@ -29,6 +30,7 @@ interface PasswordForm{
 type ElFormInstance = InstanceType<typeof import('element-plus')['ElForm']>
 
 
+const useStore = useUserStore()
 const userData: UserInfo = reactive({
     id: -1,
     username: '',
@@ -177,7 +179,7 @@ onMounted(() => {
         <!-- 左侧头像区域 -->
         <div class="avatar-section">
           <el-card class="avatar-container" shadow="hover">
-            <img :src="userData.avatar" alt="用户头像" class="avatar-image">
+              <el-avatar :src="useStore.avatarUrl" :size="70"/>
             <div class="avatar-upload">
               <label for="avatar-input" class="upload-btn">更换头像</label>
               <input
@@ -228,7 +230,7 @@ onMounted(() => {
                     <el-form-item label="邮箱" prop="email">
                         <el-input
                             v-model="userData.email"
-                            :disabled="!isEditing"
+                            disabled
                             size="large"
                             placeholder="请输入邮箱"
                         />
@@ -396,6 +398,7 @@ onMounted(() => {
   border-radius: 4px;
   cursor: pointer;
   transition: background-color 0.3s;
+  font-size: 14px;
 }
 
 .upload-btn:hover {
@@ -443,6 +446,7 @@ onMounted(() => {
 
 .btn {
   padding: 8px 16px;
+  font-size: 10px;
   border: none;
   border-radius: 4px;
   cursor: pointer;

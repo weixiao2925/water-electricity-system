@@ -25,6 +25,16 @@ export const useUserStore = defineStore('user', {
             registerTime: '',
         } as UserInfo
     }),
+    getters: {
+        avatarUrl(): string {
+            if (this.user.avatar){
+                const { apiBase } = useRuntimeConfig().public
+                return `${apiBase}/api/image${this.user.avatar}`
+            } else
+                return 'https://www.keaitupian.cn/cjpic/frombd/1/253/1215285637/1396751085.jpg';
+            //http://localhost:8848/api/image/avatar/4aa54576fc914ee697380d43605c8f1f
+        },
+    },
     actions: {
         setUser(userData: UserInfo, options: CookieOptions = {}): void {
             this.user = userData
@@ -58,6 +68,13 @@ export const useUserStore = defineStore('user', {
             } catch (e) {
                 console.error('解析用户信息失败', e);
             }
+        },
+        avatarUserUrl(avatarUrl: string): string {
+            if (avatarUrl) {
+                const { apiBase } = useRuntimeConfig().public
+                return `${apiBase}/api/image${avatarUrl}`
+            }else
+                return 'https://www.keaitupian.cn/cjpic/frombd/1/253/1215285637/1396751085.jpg';
         }
     }
 })

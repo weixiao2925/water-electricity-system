@@ -90,7 +90,9 @@ onMounted(() => {
                         {{store.user.username}}
                     </span>
                     <el-dropdown>
-                    <div class="avatar">👤</div>
+                    <div>
+                        <el-avatar :src="store.avatarUrl"/>
+                    </div>
                         <template #dropdown >
                             <el-dropdown-item @click="goTo('/home/profile')">
                                 <el-icon><ElIconHouse/></el-icon>
@@ -232,17 +234,6 @@ body {
 
 .user-name {
     margin-right: 10px;
-}
-
-.avatar {
-    width: 35px;
-    height: 35px;
-    border-radius: 50%;
-    background-color: #eee;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 20px;
 }
 
 .main-content {
