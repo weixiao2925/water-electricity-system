@@ -2,32 +2,8 @@
 import {useUserService} from "~/services/user";
 import type {FormRules} from "element-plus";
 import {useUserStore} from "~/store/user";
+import type {InfoForm, PasswordForm, UserInfo, ElFormInstance} from "~/types/home/profile/type";
 
-interface Detail{
-    gender: number,
-    phone: string,
-    qq: string,
-    wx: string,
-    desc: string,
-    address: string,
-}
-interface UserInfo{
-    id: number,
-    username: string,
-    email: string,
-    avatar: string,
-    registerTime: string,
-    details: Detail,
-}
-interface InfoForm{
-    email: string,
-}
-interface PasswordForm{
-    oldPassword: string,
-    newPassword: string,
-    confirmPassword: string
-}
-type ElFormInstance = InstanceType<typeof import('element-plus')['ElForm']>
 
 
 const useStore = useUserStore()

@@ -5,13 +5,8 @@ import type {FormRules} from "element-plus";
 import {useAuthService} from "~/services/auth";
 import {useUserService} from "~/services/user";
 import {useUserStore} from "~/store/user";
+import type {ElFormInstance, LoginForm} from "~/types/welcome/type";
 
-interface LoginForm{
-    username: string
-    password: string
-    remember_me: boolean
-}
-type ElFormInstance = InstanceType<typeof import('element-plus')['ElForm']>
 
 const store = useUserStore()
 const router = useRouter()
