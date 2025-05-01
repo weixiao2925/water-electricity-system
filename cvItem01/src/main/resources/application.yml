@@ -27,6 +27,10 @@ spring:
         abcdef
       expire:
         7
+  minio:
+    endpoint: 'http://localhost:9000'
+    username: 'minio'
+    password: 'password'
   servlet:
     multipart:
       max-file-size: 100MB
