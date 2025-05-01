@@ -9,6 +9,13 @@ export function useUserService(){
             }catch (error){
                 throw error
             }
+        },
+        apiUserInfoDetail: async () =>{
+            try {
+                return await $api.get('/api/user/info-detail')
+            }catch (error){
+                throw error
+            }
         }
     }
 }
