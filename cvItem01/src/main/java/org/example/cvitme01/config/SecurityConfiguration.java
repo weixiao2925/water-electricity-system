@@ -46,6 +46,7 @@ public class SecurityConfiguration {
                         .requestMatchers(
                                 "/swagger-ui.html",
                                 "/swagger-ui/**",
+                                "/api/image/avatar/**",
                                 "/v3/api-docs/**",
                                 "/v3/api-docs.yaml"
                         ).permitAll()
