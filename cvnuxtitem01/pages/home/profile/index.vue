@@ -115,14 +115,20 @@ const cancelChangePassword = () => {
 const submitPasswordChange = () => {
     passwordFormRef.value?.validate((valid: boolean) => {
         if (valid){
-            isChangingPassword.value = false;
-            ElMessage.success('密码修改成功');
-
-            // 重置表单
-            passwordForm.oldPassword = '';
-            passwordForm.newPassword = '';
-            passwordForm.confirmPassword = '';
+            useUserService()
+                .apiUserPasswordUpdate(passwordForm)
+                .then(_ => {
+                    isChangingPassword.value = false;
+                    ElMessage.success('密码修改成功');
+                })
+                .finally(()=>{
+                    // 重置表单
+                    passwordForm.oldPassword = '';
+                    passwordForm.newPassword = '';
+                    passwordForm.confirmPassword = '';
+                })
         }else {
+
             ElMessage.error('请填写完整信息');
         }
     })
