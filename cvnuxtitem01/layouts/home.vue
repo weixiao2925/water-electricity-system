@@ -38,7 +38,7 @@ onMounted(() => {
         store.initUserFromCookie()
     }
     if (route.path === '/home') {
-        router.replace('/home/dashboard')
+        navigateTo('/home/dashboard')
     }
 })
 </script>
@@ -78,7 +78,7 @@ onMounted(() => {
                 <div class="user">
                     <template v-if="isRole(Role.Admin)">
                         <el-button type="danger" size="small"
-                                   @click="router.push('/admin')"
+                                   @click="goTo('/admin')"
                                    v-if="!isAdminPage">
                             前往管理端
                             <el-icon style="margin-left: 5px;">

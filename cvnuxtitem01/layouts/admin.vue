@@ -10,7 +10,6 @@ interface MenuItem {
     label: string;
 }
 
-const router = useRouter();
 const route = useRoute();
 const store = useUserStore()
 
@@ -30,6 +29,9 @@ const logout = ():void =>{
     const event = useRequestEvent()
     useAuthService()
         .logout(event)
+}
+const goTo = (where: string): void =>{
+    navigateTo(where);
 }
 
 onMounted(()=>{
@@ -75,7 +77,7 @@ onMounted(()=>{
           <template v-if="isRole(Role.Admin)">
             <el-button type="primary" size="small"
                       v-if="isAdminPage"
-                      @click="router.push('/home')">
+                      @click="goTo('/home')">
               回到客户端
               <el-icon style="margin-left: 5px;">
                 <ElIconRight/>
@@ -88,7 +90,7 @@ onMounted(()=>{
                 <el-avatar size="default" :src="store.avatarUrl" />
             </div>
             <template #dropdown>
-              <el-dropdown-item>
+              <el-dropdown-item @click="goTo('/home/profile')">
                 <el-icon><ElIconHouse/></el-icon>
                 个人信息
               </el-dropdown-item>
