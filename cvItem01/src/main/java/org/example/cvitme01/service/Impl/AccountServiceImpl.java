@@ -5,11 +5,13 @@ import org.babyfish.jimmer.sql.JSqlClient;
 import org.babyfish.jimmer.sql.ast.mutation.MutableUpdate;
 import org.babyfish.jimmer.sql.fetcher.Fetcher;
 import org.example.cvitme01.entity.dto.*;
+import org.example.cvitme01.entity.vo.request.PasswordUpdateVO;
 import org.example.cvitme01.repository.AccountRepository;
 import org.example.cvitme01.service.AccountService;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -17,8 +19,8 @@ import org.springframework.stereotype.Service;
 public class AccountServiceImpl implements AccountService {
 
     private final AccountRepository accountRepository;
-
     private final JSqlClient sqlClient;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     public Account findByUsername(String username) {
@@ -88,6 +90,29 @@ public class AccountServiceImpl implements AccountService {
                 .where(table.id().eq(Long.valueOf(id)))
                 .execute();
         return affectedRows > 0;
+    }
+
+    @Override
+    public String updateAccountPassword(Integer id, PasswordUpdateVO vo) {
+        AccountTable table = AccountTable.$;
+        String password = sqlClient
+                .createQuery(table)
+                .where(table.id().eq(Long.valueOf(id)))
+                .select(table.password())
+                .fetchOneOrNull();
+
+        if (!passwordEncoder.matches(vo.getOldPassword(), password))
+            return "原密码错误,请重新输入";
+        if (!vo.isValid())
+            return "新密码不一致，请重新输入";
+
+        return sqlClient
+                .createUpdate(table)
+                .set(table.password(), passwordEncoder.encode(vo.getNewPassword()))
+                .where(table.id().eq(Long.valueOf(id)))
+                .execute() > 0
+                ? null
+                : "未知错误，请联系管理员";
     }
 
     @Override

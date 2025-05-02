@@ -3,6 +3,7 @@ package org.example.cvitme01.controller;
 import lombok.RequiredArgsConstructor;
 import org.example.cvitme01.entity.RestBean;
 import org.example.cvitme01.entity.dto.Account;
+import org.example.cvitme01.entity.vo.request.PasswordUpdateVO;
 import org.example.cvitme01.service.AccountService;
 import org.example.cvitme01.utils.Const;
 import org.springframework.web.bind.annotation.*;
@@ -36,5 +37,14 @@ public class AccountController {
         return accountService.updateAccountInfo(id, account)
                 ? RestBean.success()
                 : RestBean.failure(400, "未知错误，请联系管理员");
+    }
+
+    @PostMapping("/password-update")
+    public RestBean<Void> updatePassword(@RequestAttribute(Const.ATTR_USER_ID) int id,
+                                         @RequestBody PasswordUpdateVO vo) {
+        String message = accountService.updateAccountPassword(id, vo);
+        return message == null
+                ? RestBean.success()
+                : RestBean.failure(400, message);
     }
 }

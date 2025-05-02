@@ -1,6 +1,7 @@
 package org.example.cvitme01.service;
 
 import org.example.cvitme01.entity.dto.Account;
+import org.example.cvitme01.entity.vo.request.PasswordUpdateVO;
 import org.springframework.security.core.userdetails.UserDetailsService;
 
 public interface AccountService extends UserDetailsService {
@@ -8,4 +9,5 @@ public interface AccountService extends UserDetailsService {
     Account findAccountInfoById(Integer id);
     Account findAccountWithDetailsById(Integer id);
     boolean updateAccountInfo(Integer id, Account account);
+    String updateAccountPassword(Integer id, PasswordUpdateVO vo);
 }
