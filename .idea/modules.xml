@@ -4,6 +4,7 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/cvItem.iml" filepath="$PROJECT_DIR$/cvItem.iml" />
       <module fileurl="file://$PROJECT_DIR$/cvnuxtitem01/cvnuxtitem01.iml" filepath="$PROJECT_DIR$/cvnuxtitem01/cvnuxtitem01.iml" />
+      <module fileurl="file://$PROJECT_DIR$/cvpythonitem01/cvpythonitem01.iml" filepath="$PROJECT_DIR$/cvpythonitem01/cvpythonitem01.iml" />
       <module fileurl="file://$PROJECT_DIR$/cvvueitem01/cvvueitem01.iml" filepath="$PROJECT_DIR$/cvvueitem01/cvvueitem01.iml" />
     </modules>
   </component>
