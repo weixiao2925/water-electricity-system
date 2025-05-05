@@ -25,30 +25,23 @@ def read_water_meter_api():
     file.save(filepath)
 
     try:
-        # 方法一：使用 OCR + 指针简化识别
-        digital_result, pointer_result, _ = read_water_meter(filepath)
+        # 调用修改后的水表读数识别函数
+        final_reading, final_image, digital_result, pointer_result = read_water_meter(filepath)
 
-        # 将 pointer_result 转换为可序列化格式
-        serializable_pointer_result = {}
-        if pointer_result:
-            for k, v in pointer_result.items():
-                if isinstance(k, tuple):
-                    # 将元组键转换为字符串
-                    key = f"表盘_{k[0]}_{k[1]}"
-                else:
-                    key = str(k)
-                serializable_pointer_result[key] = v
-
-        if digital_result:
-            return jsonify({
-                "code": 200,
-                "data": {
-                    "method": "ocr_and_simple_pointer",
-                    "digital_result": digital_result,
-                    "pointer_readings": serializable_pointer_result
-                },
-                "success": True
-            })
+        if final_reading:
+            if digital_result:  # 有数字部分说明是数字型水表
+                integer_part = digital_result
+                decimal_part = pointer_result if pointer_result else "0"
+                return jsonify({
+                    "code": 200,
+                    "data": {
+                        "method": "combined_meter_reading",
+                        "reading": final_reading,
+                        "digital_part": integer_part,
+                        "pointer_part": decimal_part
+                    },
+                    "success": True
+                })
 
         # 方法二：fallback 到多指针圆盘识别
         result = run_multi_dial_reader(filepath)

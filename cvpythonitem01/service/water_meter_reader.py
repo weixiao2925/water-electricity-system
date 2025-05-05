@@ -273,75 +273,84 @@ def detect_dial_readings(image):
 
 def read_water_meter(image_path):
     """
-    读取水表图片，识别数字显示部分和指针刻度
+    读取水表图片，识别数字显示部分和指针刻度，返回组合后的最终读数
 
     Args:
         image_path: 图像路径
 
     Returns:
-        tuple: (digital_result, pointer_results, final_image)
+        tuple: (final_reading, final_image)
+            - final_reading: 组合后的最终读数（字符串格式，如"123.4567"）
+            - final_image: 标记了识别结果的输出图像
     """
     # 加载图像
     image = cv2.imread(image_path)
     if image is None:
         print(f"错误：无法加载图片 {image_path}")
-        return None, None, None
+        return None, None
 
     final_image = image.copy()
 
-    # 1. 识别数字显示部分
+    # 1. 识别数字显示部分（整数部分）
     print("\n=== 开始识别数字显示部分 ===")
     digital_result, digital_image = recognize_digital_display(image)
 
-    # 2. 识别指针刻度
+    # 2. 识别指针刻度（小数部分）
     print("\n=== 开始识别指针刻度 ===")
     pointer_readings, pointer_image = detect_dial_readings(image)
 
     # 3. 合并结果到最终图像
-    # 上半部分显示数字识别结果
     h, w = image.shape[:2]
     final_image[:h//2, :] = digital_image[:h//2, :]
-    # 下半部分显示指针识别结果
     final_image[h//2:, :] = pointer_image[h//2:, :]
 
-    # 4. 组合读数
+    # 4. 组合最终读数
+    final_reading = None
+    integer_part = digital_result if digital_result else "0"
+
+    decimal_part = ""
+    decimal_value = 0
+
     if pointer_readings:
         # 按X坐标排序指针读数 (从右到左)
         sorted_centers = sorted(pointer_readings.keys(), key=lambda k: k[0], reverse=True)
 
-        # 创建两种格式的指针读数
-        pointer_result_str = ""
-        pointer_result_weighted_sum = 0
-
-        # 设置小数位权重 (从右到左: 0.1, 0.01, 0.001, 0.0001)
-        weights = [0.1, 0.01, 0.001, 0.0001]
-
+        # 从指针读数获取小数部分
         for i, center in enumerate(sorted_centers):
             reading = pointer_readings[center]
-            pointer_result_str += str(reading)
+            decimal_part += str(reading)
 
-            # 计算加权和，确保不超出权重列表范围
+        # 计算小数部分（使用加权值更精确）
+        weights = [0.1, 0.01, 0.001, 0.0001]
+        for i, center in enumerate(sorted_centers):
             if i < len(weights):
-                pointer_result_weighted_sum += reading * weights[i]
+                decimal_value += pointer_readings[center] * weights[i]
+
+    # 5. 组合整数和小数部分
+    if decimal_part:
+        final_reading = f"{integer_part}.{decimal_part}"
     else:
-        pointer_result_str = "未检测到指针读数"
-        pointer_result_weighted_sum = 0
+        final_reading = integer_part
 
-    # 5. 在图像上添加最终结果
-    if digital_result:
-        cv2.putText(final_image, f"数字显示读数: {digital_result}",
-                   (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
+    # 计算最终数值（整数 + 小数值）
+    final_numeric_value = float(integer_part) + decimal_value
+
+    # 6. 在图像上添加最终结果
+    cv2.putText(final_image, f"数字显示读数: {integer_part}",
+                (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
+
+    if decimal_part:
+        cv2.putText(final_image, f"指针读数: 0.{decimal_part}",
+                    (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 0, 0), 2)
     else:
-        cv2.putText(final_image, "数字显示读数: 未检测到",
-                   (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
+        cv2.putText(final_image, "指针读数: 未检测到",
+                    (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 0, 0), 2)
 
-    cv2.putText(final_image, f"指针读数(从右到左): {pointer_result_str}",
-               (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 0, 0), 2)
+    # 添加最终水表读数
+    cv2.putText(final_image, f"最终水表读数: {final_numeric_value:.4f}",
+                (10, 90), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2)
 
-    cv2.putText(final_image, f"指针读数(加权): {pointer_result_weighted_sum:.4f}",
-               (10, 90), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
-
-    return digital_result, pointer_readings, final_image
+    return final_reading, final_image, digital_result, decimal_part
 
 if __name__ == "__main__":
     image_file = 'img/25.png'  # 请确保路径正确
