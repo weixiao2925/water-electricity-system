@@ -7,4 +7,8 @@ public interface Tables {
     AccountTable ACCOUNT_TABLE = AccountTable.$;
 
     AccountDetailsTable ACCOUNT_DETAILS_TABLE = AccountDetailsTable.$;
+
+    MeterTable METER_TABLE = MeterTable.$;
+
+    ReadingTable READING_TABLE = ReadingTable.$;
 }

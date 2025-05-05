@@ -21,4 +21,20 @@ public interface Immutables {
             DraftConsumer<AccountDetailsDraft> block) {
         return AccountDetailsDraft.$.produce(base, block);
     }
+
+    static Meter createMeter(DraftConsumer<MeterDraft> block) {
+        return MeterDraft.$.produce(block);
+    }
+
+    static Meter createMeter(Meter base, DraftConsumer<MeterDraft> block) {
+        return MeterDraft.$.produce(base, block);
+    }
+
+    static Reading createReading(DraftConsumer<ReadingDraft> block) {
+        return ReadingDraft.$.produce(block);
+    }
+
+    static Reading createReading(Reading base, DraftConsumer<ReadingDraft> block) {
+        return ReadingDraft.$.produce(base, block);
+    }
 }
