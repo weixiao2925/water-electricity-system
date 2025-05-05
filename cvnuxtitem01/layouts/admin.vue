@@ -21,7 +21,7 @@ const adminMenuItems: MenuItem[] = [
     { path: '/admin/tariff', icon: '💰', label: '价格配置' },
     { path: '/admin/ocr-tasks', icon: '📋', label: '任务监控' },
     { path: '/admin/bills', icon: '📃', label: '账单中心' },
-    { path: '/admin/logs', icon: '📝', label: '操作/系统日志' },
+    { path: '/admin/log', icon: '📝', label: '操作/系统日志' },
     { path: '/admin/settrings', icon: '⚙️', label: '系统设置' }
 ];
 
