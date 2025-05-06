@@ -9,7 +9,6 @@ import org.babyfish.jimmer.sql.JSqlClient;
 import org.babyfish.jimmer.sql.ast.mutation.SaveMode;
 import org.example.cvitme01.entity.dto.Reading;
 import org.example.cvitme01.entity.dto.ReadingDraft;
-import org.example.cvitme01.repository.HomeUploadRepository;
 import org.example.cvitme01.service.HomeUploadService;
 import org.example.cvitme01.utils.Const;
 import org.springframework.core.io.ByteArrayResource;
@@ -35,12 +34,11 @@ public class HomeUploadServiceImpl implements HomeUploadService {
     private final RestTemplate restTemplate;
     private final MinioClient minioClient;
     private final JSqlClient sqlClient;
-    private final HomeUploadRepository homeUploadRepository;
 
     @Override
-    public String uploadImage(MultipartFile file, String type, int id) throws Exception {
+    public Reading uploadImage(MultipartFile file, String type, int id) throws Exception {
         return switch (type) {
-            case "watter" -> water(file, id);
+            case "watter" -> water(file);
             case "electricity" ->
                 // Implement electricity handling here
                     null;
@@ -48,7 +46,7 @@ public class HomeUploadServiceImpl implements HomeUploadService {
         };
     }
 
-    private String water(MultipartFile file, int id) throws IOException {
+    private Reading water(MultipartFile file) throws IOException {
         MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
 
         ByteArrayResource resource = new ByteArrayResource(file.getBytes()) {
@@ -71,12 +69,11 @@ public class HomeUploadServiceImpl implements HomeUploadService {
                 JSONObject.class
         );
 
-        if (response == null) throw new RuntimeException("服务器未返回响应");
+        if (response == null) return null;
 
         log.info(response.toString());
 
         Integer code = response.getInteger("code");
-        Boolean success = response.getBoolean("success");
 
         // 将data作为JSONObject而不是String
         JSONObject dataObj = response.getJSONObject("data");
@@ -105,13 +102,13 @@ public class HomeUploadServiceImpl implements HomeUploadService {
                         .setMode(SaveMode.INSERT_ONLY)
                         .execute();
 //                homeUploadRepository.save(readingToSave);
-
+                return readingToSave;
             } catch (Exception e) {
                 log.error("图片上传出现问题: {}", e.getMessage(), e);
                 return null;
             }
         }
 
-        return (code == 200 && Boolean.TRUE.equals(success)) ? null : "处理失败";
+        return null;
     }
 }

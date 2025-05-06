@@ -30,4 +30,7 @@ public class Const {
 
     //存lrc文件地址
     public static final String LRC_PATH="D:\\item2\\lrc\\";
+
+    // Minio相关
+    public static final String MINIO_WATER = "/water/";
 }
