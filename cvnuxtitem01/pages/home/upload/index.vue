@@ -71,8 +71,7 @@ const confirmSave = () => {
 
 // 处理拍照
 const handleCapture = () => {
-    // 这里实际项目中需要调用摄像头API
-    ElMessage.info('摄像头功能将在实际项目中实现');
+    return;
 };
 
 // 上传文件
@@ -213,6 +212,7 @@ definePageMeta({
                             <el-button
                                 type="primary"
                                 @click="handleCapture"
+                                disabled
                             >
                                 拍照上传
                             </el-button>
