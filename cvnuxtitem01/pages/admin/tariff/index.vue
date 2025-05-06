@@ -4,45 +4,51 @@
             <div class="page-header">
                 <h1>价格配置</h1>
                 <div class="actions">
-                    <button class="btn primary" @click="saveCurrentTariff" :disabled="!isFormChanged">保存更改</button>
-                    <button class="btn" @click="resetForm">重置</button>
+                    <el-button type="primary" @click="saveCurrentTariff" :disabled="!isFormChanged">保存更改</el-button>
+                    <el-button @click="resetForm">重置</el-button>
                 </div>
             </div>
 
-            <div class="current-version">
+            <el-card class="current-version" shadow="hover">
                 <div class="version-info">
                     <span class="label">当前版本:</span>
-                    <span class="value">{{ currentVersion }}</span>
+                    <el-tag type="primary">{{ currentVersion }}</el-tag>
                     <span class="date">生效时间: {{ formatDate(currentEffectiveDate) }}</span>
                 </div>
-            </div>
+            </el-card>
 
             <div class="tariff-container">
-                <div class="form-section">
+                <el-card class="form-section" shadow="never">
                     <TariffLadderForm
                         :ladders="ladders"
                         @update:ladders="updateLadders"
                         @add-ladder="addLadder"
                         @remove-ladder="removeLadder"
                     />
-                </div>
+                </el-card>
 
-                <div class="history-section">
+                <el-card class="history-section" shadow="never">
+                    <template #header>
+                        <div class="card-header">
+                            <span>历史版本</span>
+                        </div>
+                    </template>
                     <TariffHistoryList
                         :history="tariffHistory"
                         :currentVersionId="currentVersionId"
                         @rollback="rollbackToVersion"
                     />
-                </div>
+                </el-card>
             </div>
         </div>
     </NuxtLayout>
-
 </template>
 
 <script setup>
 import TariffLadderForm from '~/components/admin/TariffLadderForm.vue';
 import TariffHistoryList from '~/components/admin/TariffHistoryList.vue';
+import { ElMessage, ElMessageBox } from 'element-plus';
+
 definePageMeta({
     layout: 'admin'
 });
@@ -147,12 +153,19 @@ function saveCurrentTariff() {
   originalLadders.value = JSON.parse(JSON.stringify(ladders.value));
 
   // 显示成功消息
-  alert('价格配置已成功保存！');
+  ElMessage({
+    message: '价格配置已成功保存！',
+    type: 'success',
+  });
 }
 
 // 重置表单
 function resetForm() {
   ladders.value = JSON.parse(JSON.stringify(originalLadders.value));
+  ElMessage({
+    message: '表单已重置',
+    type: 'info',
+  });
 }
 
 // 回滚到指定版本
@@ -172,13 +185,28 @@ function rollbackToVersion(versionId) {
   };
 
   if (mockVersionData[versionId]) {
-    const confirmRollback = confirm(`确定要回滚到版本 ${versionId} 吗？`);
-    if (confirmRollback) {
-      ladders.value = JSON.parse(JSON.stringify(mockVersionData[versionId]));
-
-      // 在实际应用中，这里应该立即保存或提示用户保存
-      alert(`已加载版本 ${versionId} 的配置，请保存以应用更改。`);
-    }
+    ElMessageBox.confirm(
+      `确定要回滚到版本 ${versionId} 吗？`,
+      '提示',
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning',
+      }
+    )
+      .then(() => {
+        ladders.value = JSON.parse(JSON.stringify(mockVersionData[versionId]));
+        ElMessage({
+          type: 'success',
+          message: `已加载版本 ${versionId} 的配置，请保存以应用更改。`,
+        });
+      })
+      .catch(() => {
+        ElMessage({
+          type: 'info',
+          message: '已取消回滚操作',
+        });
+      });
   }
 }
 
@@ -199,6 +227,7 @@ onMounted(() => {
 .tariff-page {
   max-width: 1200px;
   margin: 0 auto;
+  padding: 20px;
 }
 
 .page-header {
@@ -211,6 +240,7 @@ onMounted(() => {
 .page-header h1 {
   margin: 0;
   font-size: 24px;
+  font-weight: 600;
 }
 
 .actions {
@@ -218,40 +248,7 @@ onMounted(() => {
   gap: 12px;
 }
 
-.btn {
-  padding: 8px 16px;
-  border-radius: 4px;
-  border: 1px solid #d9d9d9;
-  background-color: white;
-  cursor: pointer;
-  transition: all 0.3s;
-}
-
-.btn.primary {
-  background-color: #1890ff;
-  color: white;
-  border-color: #1890ff;
-}
-
-.btn.primary:hover {
-  background-color: #40a9ff;
-  border-color: #40a9ff;
-}
-
-.btn.primary:disabled {
-  background-color: #bae7ff;
-  border-color: #bae7ff;
-  cursor: not-allowed;
-}
-
-.btn:hover {
-  opacity: 0.8;
-}
-
 .current-version {
-  background-color: #f6f6f6;
-  padding: 12px 16px;
-  border-radius: 4px;
   margin-bottom: 24px;
 }
 
@@ -263,22 +260,18 @@ onMounted(() => {
 
 .label {
   font-weight: bold;
-  color: #666;
-}
-
-.value {
-  color: #1890ff;
-  font-weight: bold;
+  color: #606266;
 }
 
 .date {
-  color: #999;
+  color: #909399;
   margin-left: auto;
 }
 
 .tariff-container {
   display: flex;
   gap: 24px;
+  margin-bottom: 24px;
 }
 
 .form-section {
@@ -287,6 +280,12 @@ onMounted(() => {
 
 .history-section {
   flex: 1;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 @media (max-width: 768px) {
