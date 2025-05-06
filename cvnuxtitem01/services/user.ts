@@ -1,5 +1,5 @@
-import {useNuxtApp} from "#app";
 import type { UserInfo, PasswordForm } from "~/types/home/profile/type";
+
 export function useUserService(){
     const { $api } = useNuxtApp()
     return {
