@@ -1,4 +1,4 @@
-import type {UploadParams} from "~/types/home/upload/type";
+import type {Reading, UploadParams} from "~/types/home/upload/type";
 
 export function useUploadService() {
   const { $api } = useNuxtApp();
@@ -15,6 +15,9 @@ export function useUploadService() {
           'Content-Type': 'multipart/form-data'
         }
       });
+    },
+    apiUploadSave: async (data: Reading) => {
+        return await $api.post('/api/home/upload/image/save', data);
     }
   };
 }

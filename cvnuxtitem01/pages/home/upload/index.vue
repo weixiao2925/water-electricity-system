@@ -2,7 +2,7 @@
 import { ElMessage } from 'element-plus';
 import type { UploadFile } from 'element-plus'
 import {useUploadService} from "~/services/home/upload";
-import type {UploadParams} from "~/types/home/upload/type";
+import type {Reading, UploadParams} from "~/types/home/upload/type";
 
 const uploadService = useUploadService();
 
@@ -13,11 +13,8 @@ const selectedFile = ref<File | null>(null);
 const previewUrl = ref<string>('');
 const uploadResults = ref<any>();
 const dialogVisible = ref(false)
-const locationForm = reactive({
-    location: ''
-})
 const rules = {
-    location: [
+    'meter.location': [
         { required: true, message: '请输入位置', trigger: 'blur' }
     ]
 }
@@ -26,6 +23,15 @@ const formRef = ref()
 const meterTypes = ['水表', '电表', '气表'];
 const selectedMeterType = ref('水表');
 const lock = ref(false)
+const reading: Reading = reactive({
+    value: -1,
+    shotTime: null,
+    imageUrl: null,
+    meter: {
+        type: selectedMeterType.value === '水表' ? 'water' : 'electricity',
+        location: null,
+    }
+})
 
 // 处理文件选择
 const handleFileSelect = (uploadFile: UploadFile, _: UploadFile[]) => {
@@ -46,12 +52,19 @@ const openDialog = () => {
 const confirmSave = () => {
     formRef.value.validate((valid: boolean) => {
         if (valid) {
-            // 你的保存逻辑放这里
-            ElMessage.success(`保存成功，位置是：${locationForm.location}`)
-            locationForm.location = ''
-            formRef.value?.resetFields?.()
-            dialogVisible.value = false
-            lock.value = true
+            uploadService
+                .apiUploadSave(reading)
+                .then(_ => {
+                    ElMessage.success(`保存成功，位置是：${reading.meter.location}`)
+                    formRef.value?.resetFields?.()
+                    reading.value = -1
+                    reading.shotTime = null
+                    reading.imageUrl = null
+                    reading.meter.type = selectedMeterType.value === '水表' ? 'water' : 'electricity'
+                    reading.meter.location = null
+                    dialogVisible.value = false
+                    lock.value = true
+                })
         }
     })
 }
@@ -76,11 +89,11 @@ const uploadFile = async () => {
         // 准备上传参数
         const uploadParams: UploadParams = {
             file: selectedFile.value,
-            type: selectedMeterType.value === '水表' ? 'watter' :
+            type: selectedMeterType.value === '水表' ? 'water' :
                 selectedMeterType.value === '电表' ? 'electricity' :  'electricity'
         };
 
-        // 模拟上传进度（实际项目中可能需要使用 axios 的上传进度事件）
+        // 上传进度
         const progressInterval = setInterval(() => {
             if (uploadProgress.value < 90) {
                 uploadProgress.value += 5;
@@ -89,27 +102,25 @@ const uploadFile = async () => {
 
         // 调用上传服务
         const response = await uploadService.apiUpload(uploadParams);
-        console.log(response.data);
+        // console.log(response.data);
         // 清除进度模拟
         clearInterval(progressInterval);
         uploadProgress.value = 100;
         uploadStatus.value = 'success';
 
-        // 使用返回的结果替代模拟结果
         if (response && response.data) {
-            // 检查响应数据的格式并统一处理
             lock.value = false
+            Object.assign(reading, response.data)
+            // console.log(reading)
             if (Array.isArray(response.data)) {
                 uploadResults.value = response.data;
             } else if (typeof response.data === 'object') {
                 uploadResults.value = [response.data];
             } else {
-                // 如果后端返回的数据格式不正确，显示错误
                 ElMessage.error('返回数据格式错误');
                 uploadStatus.value = 'error';
             }
         } else {
-            // 如果后端没有返回有效数据，显示错误
             ElMessage.error('未获取到有效数据');
             uploadStatus.value = 'error';
         }
@@ -135,7 +146,7 @@ const resetUpload = () => {
     uploadResults.value = [];
 };
 
-// 上传文件列表，用于Element Plus Upload组件
+// 上传文件列表
 const fileList = ref([]);
 
 definePageMeta({
@@ -268,9 +279,9 @@ definePageMeta({
 
                                 <!-- 填写位置的弹窗表单 -->
                                 <el-dialog v-model="dialogVisible" title="保存识别结果">
-                                    <el-form :model="locationForm" :rules="rules" ref="formRef" label-width="80px">
+                                    <el-form :model="reading" :rules="rules" ref="formRef" label-width="80px">
                                         <el-form-item label="位置" prop="location">
-                                            <el-input v-model="locationForm.location" placeholder="请输入表计所在位置" />
+                                            <el-input v-model="reading.meter.location" placeholder="请输入表计所在位置" />
                                         </el-form-item>
                                     </el-form>
 

@@ -1,4 +1,16 @@
 export interface UploadParams {
     file: File;
-    type: 'watter' | 'electricity';
+    type: 'water' | 'electricity';
+}
+
+export interface Meter {
+    type: 'water' | 'electricity';
+    location: string | null;
+}
+
+export interface Reading {
+    value: number | null;
+    shotTime: string | null;
+    imageUrl: string | null;
+    meter: Meter
 }
