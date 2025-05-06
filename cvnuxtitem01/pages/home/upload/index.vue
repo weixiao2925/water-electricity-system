@@ -1,32 +1,34 @@
 <script setup lang="ts">
-import { ref } from 'vue';
 import { ElMessage } from 'element-plus';
 import type { UploadFile } from 'element-plus'
+import {useUploadService} from "~/services/home/upload";
+import type {UploadParams} from "~/types/home/upload/type";
 
+const uploadService = useUploadService();
 
 // 上传状态
 const uploadStatus = ref<'idle' | 'uploading' | 'success' | 'error'>('idle'); // idle, uploading, success, error
 const uploadProgress = ref<number>(0);
 const selectedFile = ref<File | null>(null);
 const previewUrl = ref<string>('');
-const uploadResults = ref<any[]>([]);
-
+const uploadResults = ref<any>();
+const dialogVisible = ref(false)
+const locationForm = reactive({
+    location: ''
+})
+const rules = {
+    location: [
+        { required: true, message: '请输入位置', trigger: 'blur' }
+    ]
+}
+const formRef = ref()
 // 表计类型选择
 const meterTypes = ['水表', '电表', '气表'];
 const selectedMeterType = ref('水表');
-
-// 拖拽区域状态
-const isDragging = ref(false);
-
-// 模拟识别结果
-const demoResults = [
-    { id: 1, type: '水表', reading: 123.5, confidence: 98.5, time: '2023-05-20 14:30:45', cost: 78.4 },
-    { id: 2, type: '电表', reading: 568.7, confidence: 97.2, time: '2023-05-18 10:15:22', cost: 195.6 },
-    { id: 3, type: '气表', reading: 89.2, confidence: 95.8, time: '2023-05-15 09:40:18', cost: 167.3 },
-];
+const lock = ref(false)
 
 // 处理文件选择
-const handleFileSelect = (uploadFile: UploadFile, uploadFiles: UploadFile[]) => {
+const handleFileSelect = (uploadFile: UploadFile, _: UploadFile[]) => {
     const rawFile = uploadFile.raw
     if (!rawFile || !rawFile.type.startsWith('image/')) {
         ElMessage.error('请上传图片文件')
@@ -38,24 +40,21 @@ const handleFileSelect = (uploadFile: UploadFile, uploadFiles: UploadFile[]) => 
     selectedFile.value = rawFile
 }
 
-// 处理拖拽
-const handleDragOver = (event: DragEvent) => {
-    event.preventDefault();
-    isDragging.value = true;
-};
-
-const handleDragLeave = () => {
-    isDragging.value = false;
-};
-
-const handleDrop = (event: DragEvent) => {
-    event.preventDefault();
-    isDragging.value = false;
-
-    if (event.dataTransfer?.files.length) {
-        processSelectedFile(event.dataTransfer.files[0]);
-    }
-};
+const openDialog = () => {
+    dialogVisible.value = true
+}
+const confirmSave = () => {
+    formRef.value.validate((valid: boolean) => {
+        if (valid) {
+            // 你的保存逻辑放这里
+            ElMessage.success(`保存成功，位置是：${locationForm.location}`)
+            locationForm.location = ''
+            formRef.value?.resetFields?.()
+            dialogVisible.value = false
+            lock.value = true
+        }
+    })
+}
 
 // 处理拍照
 const handleCapture = () => {
@@ -63,19 +62,8 @@ const handleCapture = () => {
     ElMessage.info('摄像头功能将在实际项目中实现');
 };
 
-// 处理选择的文件
-const processSelectedFile = (file: File) => {
-    selectedFile.value = file;
-
-    // 创建预览URL
-    if (previewUrl.value) {
-        URL.revokeObjectURL(previewUrl.value);
-    }
-    previewUrl.value = URL.createObjectURL(file);
-};
-
 // 上传文件
-const uploadFile = () => {
+const uploadFile = async () => {
     if (!selectedFile.value) {
         ElMessage.warning('请先选择文件');
         return;
@@ -84,21 +72,53 @@ const uploadFile = () => {
     uploadStatus.value = 'uploading';
     uploadProgress.value = 0;
 
-    // 模拟上传进度
-    const interval = setInterval(() => {
-        uploadProgress.value += 5;
+    try {
+        // 准备上传参数
+        const uploadParams: UploadParams = {
+            file: selectedFile.value,
+            type: selectedMeterType.value === '水表' ? 'watter' :
+                selectedMeterType.value === '电表' ? 'electricity' :  'electricity'
+        };
 
-        if (uploadProgress.value >= 100) {
-            clearInterval(interval);
-            uploadStatus.value = 'success';
+        // 模拟上传进度（实际项目中可能需要使用 axios 的上传进度事件）
+        const progressInterval = setInterval(() => {
+            if (uploadProgress.value < 90) {
+                uploadProgress.value += 5;
+            }
+        }, 200);
 
-            // 模拟获取结果
-            setTimeout(() => {
-                // 根据选择的表计类型过滤结果
-                uploadResults.value = demoResults.filter(item => item.type === selectedMeterType.value);
-            }, 500);
+        // 调用上传服务
+        const response = await uploadService.apiUpload(uploadParams);
+        console.log(response.data);
+        // 清除进度模拟
+        clearInterval(progressInterval);
+        uploadProgress.value = 100;
+        uploadStatus.value = 'success';
+
+        // 使用返回的结果替代模拟结果
+        if (response && response.data) {
+            // 检查响应数据的格式并统一处理
+            lock.value = false
+            if (Array.isArray(response.data)) {
+                uploadResults.value = response.data;
+            } else if (typeof response.data === 'object') {
+                uploadResults.value = [response.data];
+            } else {
+                // 如果后端返回的数据格式不正确，显示错误
+                ElMessage.error('返回数据格式错误');
+                uploadStatus.value = 'error';
+            }
+        } else {
+            // 如果后端没有返回有效数据，显示错误
+            ElMessage.error('未获取到有效数据');
+            uploadStatus.value = 'error';
         }
-    }, 200);
+
+    } catch (error) {
+        console.error('上传失败:', error);
+        uploadStatus.value = 'error';
+        ElMessage.error('上传处理失败，请重试');
+    }
 };
 
 // 重置上传
@@ -137,7 +157,7 @@ definePageMeta({
                         <div class="meter-type-selector">
                             <h3>选择表计类型</h3>
                             <el-radio-group v-model="selectedMeterType" size="large">
-                                <el-radio-button v-for="type in meterTypes" :key="type" :label="type">
+                                <el-radio-button v-for="type in meterTypes" :key="type" :value="type">
                                     {{ type }}
                                 </el-radio-button>
                             </el-radio-group>
@@ -172,7 +192,7 @@ definePageMeta({
                                         size="small"
                                         @click.stop="resetUpload"
                                     >
-                                        <ElIconDelete/>
+                                        <el-icon><ElIconDelete/></el-icon>
                                     </el-button>
                                 </div>
                             </template>
@@ -207,20 +227,28 @@ definePageMeta({
                             ></el-progress>
                         </div>
 
-                        <div v-else-if="uploadStatus === 'success' && uploadResults.length > 0" class="results-table">
+                        <div v-else-if="uploadStatus === 'success' && uploadResults" class="results-table">
                             <h3>识读结果</h3>
-                            <el-table :data="uploadResults" style="width: 100%" border>
-                                <el-table-column prop="type" label="表计类型"></el-table-column>
-                                <el-table-column prop="reading" label="读数"></el-table-column>
-                                <el-table-column prop="confidence" label="置信度">
-                                    <template #default="scope">
-                                        {{ scope.row.confidence }}%
+                            <el-table :data="Array.isArray(uploadResults) ? uploadResults : [uploadResults]" style="width: 100%" border>
+                                <el-table-column prop="type" label="表计类型">
+                                    <template #default="{ row }">
+                                        {{selectedMeterType}}
                                     </template>
                                 </el-table-column>
-                                <el-table-column prop="time" label="识读时间"></el-table-column>
+                                <el-table-column prop="value" label="读数"></el-table-column>
+                                <el-table-column prop="confidence" label="置信度">
+                                    <template #default="scope">
+                                        90%
+                                    </template>
+                                </el-table-column>
+                                <el-table-column prop="shotTime" label="识读时间">
+                                    <template #default="scope">
+                                        {{ formatDateTime(scope.row.shotTime) }}
+                                    </template>
+                                </el-table-column>
                                 <el-table-column prop="cost" label="预估费用">
                                     <template #default="scope">
-                                        ¥{{ scope.row.cost.toFixed(2) }}
+                                        ¥{{ scope.row.cost ? scope.row.cost.toFixed(2) : '0.00' }}
                                     </template>
                                 </el-table-column>
                             </el-table>
@@ -229,9 +257,28 @@ definePageMeta({
                                 <el-button @click="resetUpload">
                                     上传新图片
                                 </el-button>
-                                <el-button type="primary">
-                                    保存结果
+                                <!-- 保存识别结果按钮 -->
+                                <el-button
+                                    type="primary"
+                                    @click="openDialog"
+                                    :disabled="lock"
+                                >
+                                    保存识别结果
                                 </el-button>
+
+                                <!-- 填写位置的弹窗表单 -->
+                                <el-dialog v-model="dialogVisible" title="保存识别结果">
+                                    <el-form :model="locationForm" :rules="rules" ref="formRef" label-width="80px">
+                                        <el-form-item label="位置" prop="location">
+                                            <el-input v-model="locationForm.location" placeholder="请输入表计所在位置" />
+                                        </el-form-item>
+                                    </el-form>
+
+                                    <template #footer>
+                                        <el-button @click="dialogVisible = false">取消</el-button>
+                                        <el-button type="primary" @click="confirmSave">确认保存</el-button>
+                                    </template>
+                                </el-dialog>
                             </div>
                         </div>
 
