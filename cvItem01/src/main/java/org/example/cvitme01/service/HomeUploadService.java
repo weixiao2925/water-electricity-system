@@ -5,4 +5,5 @@ import org.springframework.web.multipart.MultipartFile;
 
 public interface HomeUploadService {
     Reading uploadImage(MultipartFile file, String type, int id) throws Exception;
+    String saveImage(Reading reading, int id) throws Exception;
 }
