@@ -70,8 +70,12 @@ function formatDate(dateString: string): string {
 
 // 回滚到指定版本
 function rollbackToVersion(versionId: number): void {
+    const newVersion = historyVersion.value.find(data => {
+        return data.id === versionId
+    })?.version;
+    // console.log(newVersion);
     ElMessageBox.confirm(
-        `确定要回滚到版本 ${versionId} 吗？`,
+        `确定要回滚到版本 ${newVersion} 吗？`,
         '提示',
         {
             confirmButtonText: '确定',
@@ -88,7 +92,7 @@ function rollbackToVersion(versionId: number): void {
                 fetchTariffData()
                 ElMessage({
                     type: 'success',
-                    message: `已加载版本 ${versionId} 的配置，请保存以应用更改。`,
+                    message: `已加载版本 ${newVersion} 的配置，请保存以应用更改。`,
                 });
             })
         })
