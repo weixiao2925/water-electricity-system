@@ -14,3 +14,10 @@ export enum Role{
     Admin = 'admin',
     User = 'user',
 }
+
+// 类型相关
+export enum TARIFF_TYPES{
+    Water = 'water',
+    Electricity = 'electricity',
+    Gas = 'gas',
+}

@@ -1,157 +1,187 @@
-<template>
-  <div class="tariff-ladder-form">
-    <div class="form-header">
-      <h2>阶梯价格配置</h2>
-      <button class="add-btn" @click="$emit('add-ladder')">
-        <span class="icon">+</span> 添加阶梯
-      </button>
-    </div>
-    <div class="ladder-header">
-      <div class="ladder-col col-range">用量范围 (度)</div>
-      <div class="ladder-col col-price">单价 (元/度)</div>
-      <div class="ladder-col col-action">操作</div>
-    </div>
-    <div class="ladder-list">
-      <TariffLadderItem
-        v-for="(ladder, index) in ladders"
-        :key="ladder.id"
-        :ladder="ladder"
-        :index="index"
-        :isFirst="index === 0"
-        :isLast="index === ladders.length - 1"
-        :totalLadders="ladders.length"
-        @update:ladder="updateLadder(index, $event)"
-        @remove="$emit('remove-ladder', ladder.id)"
-      />
-    </div>
-    <div class="form-notes">
-      <p><strong>注意:</strong> 最后一个阶梯的最大值可留空，表示无上限</p>
-      <p>阶梯范围必须连续，不能有空缺或重叠</p>
-    </div>
-  </div>
-</template>
-
 <script setup lang="ts">
-import TariffLadderItem from '@/components/admin/TariffLadderItem.vue';
+  import type { TariffItem } from '~/types/admin/tariff/type';
 
-const props = defineProps({
-  ladders: {
-    type: Array,
-    required: true
+  const props = defineProps({
+    ladders: {
+      type: Array as () => TariffItem[],
+      required: true
+    },
+    unit: {
+      type: String,
+      default: '度'
+    }
+  });
+
+  const emit = defineEmits<{
+    'update:ladders': [ladders: TariffItem[]];
+    'add-ladder': [];
+    'remove-ladder': [id: number];
+  }>();
+
+  function updateLadder<K extends keyof TariffItem>(index: number, field: K, value: TariffItem[K]): void {
+      const newLadders = [...props.ladders];
+      newLadders[index][field] = value;
+
+      // 如果更新的是seq值，需要保持顺序性
+      if (field === 'seq') {
+          // 调整可能需要更新的相关数据
+      }
+
+
+      emit('update:ladders', newLadders);
   }
-});
 
-const emit = defineEmits(['update:ladders', 'add-ladder', 'remove-ladder']);
-
-// 更新单个阶梯项
-function updateLadder(index, updatedLadder) {
-  const newLadders = [...props.ladders];
-  newLadders[index] = updatedLadder;
-
-  // 如果修改了某个阶梯的max值，需要更新下一个阶梯的min值
-  if (index < newLadders.length - 1 && updatedLadder.max !== null) {
-    newLadders[index + 1] = {
-      ...newLadders[index + 1],
-      min: updatedLadder.max
-    };
+  function addLadder(): void {
+    emit('add-ladder');
   }
 
-  // 如果修改了某个阶梯的min值，需要更新上一个阶梯的max值
-  if (index > 0 && updatedLadder.min !== null) {
-    newLadders[index - 1] = {
-      ...newLadders[index - 1],
-      max: updatedLadder.min
-    };
+  function removeLadder(id: number): void {
+    emit('remove-ladder', id);
   }
 
-  emit('update:ladders', newLadders);
-}
-</script>
+  // 计算每个阶梯的最小值，基于上一个阶梯的upperBound
+  function getLowerBound(index: number): number {
+    if (index === 0) return 0;
 
-<style scoped>
-.tariff-ladder-form {
-  background-color: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  padding: 20px;
-}
+    const prevLadder = props.ladders[index - 1];
+    return prevLadder.upperBound !== null ? prevLadder.upperBound : 0;
+  }
+  </script>
 
-.form-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 16px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid #f0f0f0;
-}
+  <template>
+    <div class="ladder-form">
+      <div class="ladder-items">
+        <div v-for="(ladder, index) in ladders" :key="ladder.id" class="ladder-item">
+          <div class="ladder-header">
+            <h3>阶梯 {{ index + 1 }}</h3>
+            <el-button
+              v-if="ladders.length > 1"
+              size="small"
+              type="danger"
+              @click="removeLadder(ladder.id)"
+            >
+              删除
+            </el-button>
+          </div>
 
-.form-header h2 {
-  margin: 0;
-  font-size: 18px;
-  color: #333;
-}
+          <div class="ladder-content">
+            <el-form label-position="top">
+              <el-form-item label="范围">
+                <div class="range-inputs">
+                  <!-- 显示下限值，但不可编辑，由前一阶梯的上限决定 -->
+                  <el-input-number
+                    :model-value="getLowerBound(index)"
+                    disabled
+                    :precision="1"
+                    :step="1"
+                    :min="0"
+                  />
+                  <span class="range-separator">至</span>
+                  <el-input-number
+                    :model-value="ladder.upperBound === null ? undefined : ladder.upperBound"
+                    v-if="index !== ladders.length - 1"
+                    :precision="1"
+                    :step="1"
+                    :min="getLowerBound(index)"
+                    @change="(value) => updateLadder(index, 'upperBound', value === undefined ? null : value)"                  />
+                  <span v-if="index === ladders.length - 1" class="unlimited">不限</span>
+                  <span class="unit">{{ unit }}</span>
+                </div>
+              </el-form-item>
 
-.add-btn {
-  display: flex;
-  align-items: center;
-  background-color: #f0f8ff;
-  color: #1890ff;
-  border: 1px dashed #1890ff;
-  padding: 6px 12px;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: all 0.3s;
-}
+              <el-form-item label="价格 (元)">
+                <el-input-number
+                  v-model="ladder.price"
+                  :precision="2"
+                  :step="0.01"
+                  :min="0"
+                  @change="(value) => updateLadder(index, 'upperBound', value === undefined ? null : value)"                />
+              </el-form-item>
 
-.add-btn:hover {
-  background-color: #e6f7ff;
-}
+              <el-form-item label="类型" v-if="false"> <!-- 通常类型由外部决定，这里隐藏 -->
+                <el-select v-model="ladder.type">
+                  <el-option label="水" value="water" />
+                  <el-option label="电" value="electricity" />
+                  <el-option label="气" value="gas" />
+                </el-select>
+              </el-form-item>
 
-.add-btn .icon {
-  margin-right: 4px;
-  font-weight: bold;
-}
+              <el-form-item label="是否激活">
+                <el-switch
+                  v-model="ladder.isActive"
+                  @change="(value) => updateLadder(index, 'isActive', Boolean(value))"
+                />
+              </el-form-item>
+            </el-form>
+          </div>
+        </div>
+      </div>
 
-.ladder-header {
-  display: flex;
-  background-color: #fafafa;
-  padding: 12px 16px;
-  border-radius: 4px;
-  font-weight: 500;
-  color: #666;
-  margin-bottom: 8px;
-}
+      <div class="add-ladder">
+        <el-button type="primary" @click="addLadder">添加阶梯</el-button>
+      </div>
+    </div>
+  </template>
 
-.ladder-col {
-  flex: 1;
-}
+  <style scoped>
+  .ladder-form {
+    padding: 10px 0;
+  }
 
-.col-range {
-  flex: 2;
-}
+  .ladder-items {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+  }
 
-.col-price {
-  flex: 1;
-}
+  .ladder-item {
+    border: 1px solid #e4e7ed;
+    border-radius: 4px;
+    padding: 15px;
+    background-color: #f9f9f9;
+  }
 
-.col-action {
-  width: 80px;
-  text-align: center;
-}
+  .ladder-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    border-bottom: 1px solid #e4e7ed;
+    padding-bottom: 10px;
+  }
 
-.ladder-list {
-  margin-bottom: 16px;
-}
+  .ladder-header h3 {
+    margin: 0;
+    font-size: 16px;
+  }
 
-.form-notes {
-  margin-top: 20px;
-  padding-top: 16px;
-  border-top: 1px dashed #f0f0f0;
-  font-size: 14px;
-  color: #999;
-}
+  .ladder-content {
+    padding: 0 10px;
+  }
 
-.form-notes p {
-  margin: 4px 0;
-}
-</style>
+  .range-inputs {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .range-separator {
+    color: #606266;
+  }
+
+  .unlimited {
+    color: #909399;
+    margin-left: 5px;
+  }
+
+  .unit {
+    margin-left: 5px;
+    color: #606266;
+  }
+
+  .add-ladder {
+    margin-top: 20px;
+    display: flex;
+    justify-content: center;
+  }
+  </style>

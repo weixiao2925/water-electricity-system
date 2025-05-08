@@ -1,8 +1,26 @@
+<script setup lang="ts">
+import type {Version} from "~/types/admin/tariff/type";
+defineProps({
+    history: {
+        type: Array as () => Version[],
+        required: true
+    },
+    currentVersionId: {
+        type: Number,
+        required: true
+    }
+});
+defineEmits(['rollback']);
+
+// 使用全局的日期格式化工具函数或通过props传入
+function formatDate(dateString: string): string {
+    const options: Intl.DateTimeFormatOptions = { year: 'numeric', month: '2-digit', day: '2-digit' };
+    return new Date(dateString).toLocaleDateString('zh-CN', options);
+}
+</script>
+
 <template>
   <div class="history-list">
-    <div class="list-header">
-      <h2>历史版本</h2>
-    </div>
     <div class="list-content">
       <div
         v-for="item in history"
@@ -12,26 +30,20 @@
       >
         <div class="item-header">
           <span class="version">{{ item.version }}</span>
-          <span class="status" :class="item.status">
-            {{ item.status === 'current' ? '当前' : '历史' }}
+          <span class="status" :class="{ 'current': item.id === currentVersionId }">
+            {{ item.id === currentVersionId ? '当前' : '历史' }}
           </span>
         </div>
         <div class="item-body">
           <div class="date">
             <span class="label">生效日期:</span>
-            <span>{{ formatDate(item.effectiveDate) }}</span>
-          </div>
-          <div class="creator">
-            <span class="label">创建者:</span>
-            <span>{{ item.createdBy }}</span>
+            <span>{{ formatDate(item.startTime) }}</span>
           </div>
         </div>
-        <div class="item-actions">
+        <div class="item-actions" v-if="item.id !== currentVersionId">
           <button
             class="rollback-btn"
             @click="$emit('rollback', item.id)"
-            :disabled="item.id === currentVersionId"
-            v-if="item.status !== 'current'"
           >
             回滚到此版本
           </button>
@@ -45,47 +57,12 @@
   </div>
 </template>
 
-<script setup>
-
-const props = defineProps({
-  history: {
-    type: Array,
-    required: true
-  },
-  currentVersionId: {
-    type: String,
-    required: true
-  }
-});
-
-defineEmits(['rollback']);
-
-// 格式化日期
-function formatDate(dateString) {
-  const options = { year: 'numeric', month: '2-digit', day: '2-digit' };
-  return new Date(dateString).toLocaleDateString('zh-CN', options);
-}
-</script>
-
 <style scoped>
 .history-list {
   background-color: white;
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  padding: 20px;
+  padding: 16px;
   height: 100%;
-}
-
-.list-header {
-  margin-bottom: 16px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid #f0f0f0;
-}
-
-.list-header h2 {
-  margin: 0;
-  font-size: 18px;
-  color: #333;
 }
 
 .list-content {
@@ -142,10 +119,6 @@ function formatDate(dateString) {
   color: #666;
 }
 
-.date, .creator {
-  margin-bottom: 4px;
-}
-
 .label {
   color: #999;
   margin-right: 4px;
@@ -167,14 +140,9 @@ function formatDate(dateString) {
   font-size: 12px;
 }
 
-.rollback-btn:hover:not(:disabled) {
+.rollback-btn:hover {
   border-color: #1890ff;
   background-color: #f0f8ff;
-}
-
-.rollback-btn:disabled {
-  color: #d9d9d9;
-  cursor: not-allowed;
 }
 
 .empty-state {
