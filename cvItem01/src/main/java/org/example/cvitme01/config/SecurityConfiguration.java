@@ -41,8 +41,7 @@ public class SecurityConfiguration {
         return http
                 //路由管理
                 .authorizeHttpRequests(conf->conf
-                        .requestMatchers("/api/auth/**").permitAll()//允许这个路径的路由通过（可直接访问）
-//                        .requestMatchers("/api/user/**").permitAll()//允许这个路径的路由通过（可直接访问）
+                        .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers(
                                 "/swagger-ui.html",
                                 "/swagger-ui/**",
@@ -50,7 +49,8 @@ public class SecurityConfiguration {
                                 "/v3/api-docs/**",
                                 "/v3/api-docs.yaml"
                         ).permitAll()
-                        .anyRequest().hasAnyRole(Const.ROLE_DEFAULT, Const.ROLE_ADMIN)//其他的验证之后访问
+                        .requestMatchers("/api/admin/**").hasRole(Const.ROLE_ADMIN)
+                        .anyRequest().hasAnyRole(Const.ROLE_DEFAULT, Const.ROLE_ADMIN)
                 )
                 //登录
                 .formLogin(conf->conf
