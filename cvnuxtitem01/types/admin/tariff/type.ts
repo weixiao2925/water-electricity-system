@@ -19,6 +19,12 @@ export interface Version {
     startTime: string;
 }
 
+export interface VersionChange {
+    type: 'water' | 'electricity' | 'gas';
+    oldId: number,
+    newId: number;
+}
+
 export type GroupedTariff = {
     [type in TariffItem['tariffVersion']['type']] ?: {
         [version: string]: TariffItem[]

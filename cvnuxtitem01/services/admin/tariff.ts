@@ -1,4 +1,4 @@
-import {TARIFF_TYPES} from "~/utils/constants";
+import type {VersionChange} from "~/types/admin/tariff/type";
 
 export function useTariffService(){
     const { $api } = useNuxtApp()
@@ -12,6 +12,13 @@ export function useTariffService(){
         },
         apiTariffVersion: async (type: TARIFF_TYPES) =>{
             return await $api.get(`api/admin/tariff/version?type=${type}`)
+        },
+        apiTariffChangeVersion: async (data: VersionChange) => {
+            const formData = new FormData()
+            formData.append("type", data.type)
+            formData.append("oldId", data.oldId.toString())
+            formData.append("newId", data.newId.toString())
+            return await $api.post('api/admin/tariff/version-change', formData)
         }
     }
 }

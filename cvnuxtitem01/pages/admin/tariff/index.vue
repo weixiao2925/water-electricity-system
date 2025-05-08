@@ -68,6 +68,37 @@ function formatDate(dateString: string): string {
     return new Date(dateString).toLocaleDateString('zh-CN', options);
 }
 
+// 回滚到指定版本
+function rollbackToVersion(versionId: number): void {
+    ElMessageBox.confirm(
+        `确定要回滚到版本 ${versionId} 吗？`,
+        '提示',
+        {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'warning',
+        }
+    )
+        .then(() => {
+            useTariffService().apiTariffChangeVersion({
+                type: selectedTariffType.value,
+                oldId: currentVersionId.value,
+                newId: versionId
+            }).then(()=>{
+                fetchTariffData()
+                ElMessage({
+                    type: 'success',
+                    message: `已加载版本 ${versionId} 的配置，请保存以应用更改。`,
+                });
+            })
+        })
+        .catch(() => {
+            ElMessage({
+                type: 'info',
+                message: '已取消回滚操作',
+            });
+        });
+}
 
 watch(selectedTariffType, () => {
     fetchTariffData();
@@ -155,43 +186,7 @@ function resetForm(): void {
     // });
 }
 
-// 回滚到指定版本
-function rollbackToVersion(versionId: string): void {
-    ElMessageBox.confirm(
-        `确定要回滚到版本 ${versionId} 吗？`,
-        '提示',
-        {
-            confirmButtonText: '确定',
-            cancelButtonText: '取消',
-            type: 'warning',
-        }
-    )
-    .then(() => {
-        // useTariffService().apiTariffVersionData({
-        //     type: selectedTariffType.value,
-        //     version: versionId
-        // }).then(response => {
-        //     // 假设API返回了指定版本的配置数据
-        //     ladders.value = response.data;
-        //
-        //     ElMessage({
-        //         type: 'success',
-        //         message: `已加载版本 ${versionId} 的配置，请保存以应用更改。`,
-        //     });
-        // }).catch(error => {
-        //     ElMessage({
-        //         type: 'error',
-        //         message: `获取版本数据失败: ${error.message || '未知错误'}`,
-        //     });
-        // });
-    })
-    .catch(() => {
-        ElMessage({
-            type: 'info',
-            message: '已取消回滚操作',
-        });
-    });
-}
+
 
 </script>
 
