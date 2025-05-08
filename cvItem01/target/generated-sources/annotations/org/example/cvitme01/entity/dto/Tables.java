@@ -11,4 +11,8 @@ public interface Tables {
     MeterTable METER_TABLE = MeterTable.$;
 
     ReadingTable READING_TABLE = ReadingTable.$;
+
+    TariffTierTable TARIFF_TIER_TABLE = TariffTierTable.$;
+
+    TariffVersionTable TARIFF_VERSION_TABLE = TariffVersionTable.$;
 }

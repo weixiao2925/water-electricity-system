@@ -37,4 +37,21 @@ public interface Immutables {
     static Reading createReading(Reading base, DraftConsumer<ReadingDraft> block) {
         return ReadingDraft.$.produce(base, block);
     }
+
+    static TariffTier createTariffTier(DraftConsumer<TariffTierDraft> block) {
+        return TariffTierDraft.$.produce(block);
+    }
+
+    static TariffTier createTariffTier(TariffTier base, DraftConsumer<TariffTierDraft> block) {
+        return TariffTierDraft.$.produce(base, block);
+    }
+
+    static TariffVersion createTariffVersion(DraftConsumer<TariffVersionDraft> block) {
+        return TariffVersionDraft.$.produce(block);
+    }
+
+    static TariffVersion createTariffVersion(TariffVersion base,
+            DraftConsumer<TariffVersionDraft> block) {
+        return TariffVersionDraft.$.produce(base, block);
+    }
 }

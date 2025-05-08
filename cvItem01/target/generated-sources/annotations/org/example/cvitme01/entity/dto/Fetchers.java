@@ -11,4 +11,8 @@ public interface Fetchers {
     MeterFetcher METER_FETCHER = MeterFetcher.$;
 
     ReadingFetcher READING_FETCHER = ReadingFetcher.$;
+
+    TariffTierFetcher TARIFF_TIER_FETCHER = TariffTierFetcher.$;
+
+    TariffVersionFetcher TARIFF_VERSION_FETCHER = TariffVersionFetcher.$;
 }

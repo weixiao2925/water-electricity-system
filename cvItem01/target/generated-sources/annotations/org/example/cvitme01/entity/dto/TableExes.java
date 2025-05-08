@@ -11,4 +11,8 @@ public interface TableExes {
     MeterTableEx METER_TABLE_EX = MeterTableEx.$;
 
     ReadingTableEx READING_TABLE_EX = ReadingTableEx.$;
+
+    TariffTierTableEx TARIFF_TIER_TABLE_EX = TariffTierTableEx.$;
+
+    TariffVersionTableEx TARIFF_VERSION_TABLE_EX = TariffVersionTableEx.$;
 }
