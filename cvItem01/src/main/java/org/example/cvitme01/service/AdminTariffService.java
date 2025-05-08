@@ -10,4 +10,5 @@ public interface AdminTariffService {
     String addTariffTier(TariffTier tariffTier);
     TariffVersion getNowVersion(String type);
     List<TariffVersion> getVersion(String type);
+    String changeTariffVersion(String type, long oldId, long newId);
 }

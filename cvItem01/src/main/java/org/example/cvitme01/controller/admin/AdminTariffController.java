@@ -8,10 +8,7 @@ import org.example.cvitme01.entity.RestBean;
 import org.example.cvitme01.entity.dto.TariffTier;
 import org.example.cvitme01.entity.dto.TariffVersion;
 import org.example.cvitme01.service.AdminTariffService;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -46,6 +43,20 @@ public class AdminTariffController {
                 ?RestBean.success(message)
                 :RestBean.failure(400, "未知错误，请联系管理员");
     }
+
+    @PostMapping("/version-change")
+    public RestBean<String> versionChange(
+            @RequestParam("type") @Valid @NotNull
+            @Pattern(regexp = "water|electricity") String type,
+            @RequestParam("oldId") long oldId,
+            @RequestParam("newId") long newId) {
+        String message = adminTariffService.changeTariffVersion(type, oldId, newId);
+        return message == null
+                ? RestBean.success()
+                : RestBean.failure(400, message);
+    }
+
+
 
 
 }

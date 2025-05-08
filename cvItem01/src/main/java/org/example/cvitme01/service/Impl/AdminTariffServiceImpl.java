@@ -2,10 +2,12 @@ package org.example.cvitme01.service.Impl;
 
 import lombok.RequiredArgsConstructor;
 import org.babyfish.jimmer.sql.JSqlClient;
+import org.babyfish.jimmer.sql.ast.mutation.MutableUpdate;
 import org.babyfish.jimmer.sql.fetcher.Fetcher;
 import org.example.cvitme01.entity.dto.*;
 import org.example.cvitme01.service.AdminTariffService;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -66,5 +68,29 @@ public class AdminTariffServiceImpl implements AdminTariffService {
                 .where(table.type().eq(type))
                 .select(table.fetch(fetcher))
                 .execute();
+    }
+
+    @Override
+    @Transactional
+    public synchronized String changeTariffVersion(String type, long oldId, long newId) {
+        TariffVersionTable table = TariffVersionTable.$;
+
+        MutableUpdate oldVersionUpdate = sqlClient
+                .createUpdate(table)
+                .where(table.type().eq(type))
+                .where(table.id().eq(oldId))
+                .set(table.isActive(), Boolean.FALSE);
+        MutableUpdate newVersionUpdate = sqlClient
+                .createUpdate(table)
+                .where(table.type().eq(type))
+                .where(table.id().eq(newId))
+                .set(table.isActive(), Boolean.TRUE);
+
+        int affectedRowsOld = oldVersionUpdate.execute();
+        int affectedRowsNew = newVersionUpdate.execute();
+
+        return affectedRowsOld > 0 && affectedRowsNew > 0
+                ? null
+                : "未知错误，请联系管理员";
     }
 }
