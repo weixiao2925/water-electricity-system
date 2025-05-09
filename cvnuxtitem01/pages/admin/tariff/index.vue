@@ -29,6 +29,10 @@ const currentVersionId = computed(() => {
     return nowVersionDetails.value?.id ?? -1;
 });// 当前版本ID
 const originalLadders = ref<TariffItem[]>([]);
+const formRefs = ref<InstanceType<typeof TariffLadderForm>[]>([])
+const setFormRef = (el: InstanceType<typeof TariffLadderForm> | null, index: number) => {
+    if (el) formRefs.value[index] = el
+}
 
 
 // 获取价格数据和当前版本
@@ -104,6 +108,69 @@ function rollbackToVersion(versionId: number): void {
         });
 }
 
+// 保存当前阶梯价格配置
+function saveCurrentTariff(): void {
+    // 验证阶梯价格的合理性
+    if (!validateLadders()) {
+        return;
+    }
+
+    useTariffService().apiTariffSave(selectedTariffType.value, currentVersionId.value, ladders.value)
+        .then(() => {
+            ElMessage({
+                message: `${selectedTariffType.value === TARIFF_TYPES.Electricity ? '电价' : '水价'}配置已成功保存！`,
+                type: 'success',
+            });
+
+            fetchTariffData();
+        })
+}
+
+// 验证阶梯价格合理性
+function validateLadders(): boolean {
+    // 验证阶梯价格是否递增或相等
+    for (let i = 0; i < ladders.value.length - 1; i++) {
+        const currentLadder = ladders.value[i];
+        const nextLadder = ladders.value[i + 1];
+
+        // 检查当前阶梯的价格是否高于下一阶梯的价格
+        // 阶梯价格应该递增，即后面阶梯价格应高于或等于前面阶梯
+        if (currentLadder.price > nextLadder.price) {
+            ElMessage({
+                message: `错误：阶梯${i + 1}的价格(${currentLadder.price}元)高于阶梯${i + 2}的价格(${nextLadder.price}元)，违反了阶梯价格规则`,
+                type: 'error',
+            });
+            return false;
+        }
+    }
+
+    // 验证每个阶梯的上限是否大于下限
+    for (let i = 0; i < ladders.value.length - 1; i++) {
+        const ladder = ladders.value[i];
+        const lowerBound = i === 0 ? 0 : ladders.value[i-1].upperBound;
+
+        // 如果当前阶梯不是最后一个，且upperBound为null，则是错误的
+        if (i < ladders.value.length - 1 && ladder.upperBound === null) {
+            ElMessage({
+                message: `错误：阶梯${i + 1}必须设置上限值`,
+                type: 'error',
+            });
+            return false;
+        }
+
+        // 确保上限大于下限
+        if (ladder.upperBound !== null && lowerBound !== null && ladder.upperBound <= lowerBound) {
+            ElMessage({
+                message: `错误：阶梯${i + 1}的上限值必须大于下限值`,
+                type: 'error',
+            });
+            return false;
+        }
+    }
+
+    return true;
+}
+
 watch(selectedTariffType, () => {
     fetchTariffData();
 });// 当切换类型时重新获取数据
@@ -158,27 +225,7 @@ function removeLadder(id: number): void {
     // ladders.value.splice(index, 1);
 }
 
-// 保存当前阶梯价格配置
-function saveCurrentTariff(): void {
-    // useTariffService().apiTariffSave({
-    //     type: selectedTariffType.value,
-    //     ladders: ladders.value
-    // }).then(() => {
-    //     ElMessage({
-    //         message: `${selectedTariffType.value === TARIFF_TYPES.Electricity ? '电价' : '水价'}配置已成功保存！`,
-    //         type: 'success',
-    //     });
-    //
-    //     // 重新获取数据以更新版本信息
-    //     fetchTariffData();
-    //     fetchTariffHistory();
-    // }).catch(error => {
-    //     ElMessage({
-    //         message: `保存失败: ${error.message || '未知错误'}`,
-    //         type: 'error',
-    //     });
-    // });
-}
+
 
 // 重置表单
 function resetForm(): void {
@@ -338,3 +385,4 @@ function resetForm(): void {
   }
 }
 </style>
+

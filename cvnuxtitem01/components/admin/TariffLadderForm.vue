@@ -27,7 +27,13 @@
           // 调整可能需要更新的相关数据
       }
 
+      emit('update:ladders', newLadders);
+  }
 
+  // 专门处理可能为 undefined 的 upperBound 字段更新
+  function updateUpperBound(index: number, value: number | undefined): void {
+      const newLadders = [...props.ladders];
+      newLadders[index].upperBound = value === undefined ? null : value;
       emit('update:ladders', newLadders);
   }
 
@@ -83,7 +89,8 @@
                     :precision="1"
                     :step="1"
                     :min="getLowerBound(index)"
-                    @change="(value) => updateLadder(index, 'upperBound', value === undefined ? null : value)"                  />
+                    @change="(value) => updateUpperBound(index, value)"
+                  />
                   <span v-if="index === ladders.length - 1" class="unlimited">不限</span>
                   <span class="unit">{{ unit }}</span>
                 </div>
@@ -95,23 +102,10 @@
                   :precision="2"
                   :step="0.01"
                   :min="0"
-                  @change="(value) => updateLadder(index, 'upperBound', value === undefined ? null : value)"                />
-              </el-form-item>
-
-              <el-form-item label="类型" v-if="false"> <!-- 通常类型由外部决定，这里隐藏 -->
-                <el-select v-model="ladder.type">
-                  <el-option label="水" value="water" />
-                  <el-option label="电" value="electricity" />
-                  <el-option label="气" value="gas" />
-                </el-select>
-              </el-form-item>
-
-              <el-form-item label="是否激活">
-                <el-switch
-                  v-model="ladder.isActive"
-                  @change="(value) => updateLadder(index, 'isActive', Boolean(value))"
+                  @change="(value) => updateLadder(index, 'price', value===undefined ? -1 : value)"
                 />
               </el-form-item>
+
             </el-form>
           </div>
         </div>
