@@ -27,6 +27,7 @@ const reading: Reading = reactive({
     value: -1,
     shotTime: null,
     imageUrl: null,
+    cost: 0,
     meter: {
         type: selectedMeterType.value === '水表' ? 'water' : 'electricity',
         location: null,
