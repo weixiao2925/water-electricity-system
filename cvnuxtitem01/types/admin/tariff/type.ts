@@ -25,6 +25,11 @@ export interface VersionChange {
     newId: number;
 }
 
+export interface TariffTierSaveRequest {
+    deletedIds: number[];
+    tariffTiers: TariffItem[];
+}
+
 export type GroupedTariff = {
     [type in TariffItem['tariffVersion']['type']] ?: {
         [version: string]: TariffItem[]

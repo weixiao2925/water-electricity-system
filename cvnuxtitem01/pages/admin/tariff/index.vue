@@ -18,21 +18,19 @@ const nowVersion = computed<string>(() => {
 const selectedTariffType = ref<TARIFF_TYPES>(TARIFF_TYPES.Electricity); // 当前选择的价格类型
 const historyVersion = ref<Version[]>([]); // 历史版本
 
-// 简化一个访问辅助函数，避免重复访问逻辑
 const getLadders = (type: TARIFF_TYPES): TariffItem[] => {
-    return groupData.value?.[type]?.[nowVersion.value] ?? [];
+    if (!groupData.value || !groupData.value[type] || !nowVersion.value) {
+        return [];
+    }
+    return groupData.value[type][nowVersion.value] ?? [];
 };
 
-// 所有 computed 都能简化成调用这个：
-const ladders = computed(() => getLadders(selectedTariffType.value));
+const ladders = computed(() => getLadders(selectedTariffType.value)); // 根据类型获取数据
 const currentVersionId = computed(() => {
     return nowVersionDetails.value?.id ?? -1;
 });// 当前版本ID
-const originalLadders = ref<TariffItem[]>([]);
-const formRefs = ref<InstanceType<typeof TariffLadderForm>[]>([])
-const setFormRef = (el: InstanceType<typeof TariffLadderForm> | null, index: number) => {
-    if (el) formRefs.value[index] = el
-}
+const originalLadders = ref<TariffItem[]>([]); // 修改前的数据快照
+const deletedIds = ref<number[]>([])
 
 
 // 获取价格数据和当前版本
@@ -115,7 +113,10 @@ function saveCurrentTariff(): void {
         return;
     }
 
-    useTariffService().apiTariffSave(selectedTariffType.value, currentVersionId.value, ladders.value)
+    useTariffService().apiTariffSave(selectedTariffType.value, currentVersionId.value, {
+        deletedIds: deletedIds.value,
+        tariffTiers: ladders.value
+    })
         .then(() => {
             ElMessage({
                 message: `${selectedTariffType.value === TARIFF_TYPES.Electricity ? '电价' : '水价'}配置已成功保存！`,
@@ -171,74 +172,132 @@ function validateLadders(): boolean {
     return true;
 }
 
-watch(selectedTariffType, () => {
-    fetchTariffData();
-});// 当切换类型时重新获取数据
+// 添加阶梯
+function addLadder(): void {
+    const newLadders = [...ladders.value];
+    const lastLadder = newLadders.length > 0 ? newLadders[newLadders.length - 1] : null;
 
-onMounted(() => {
-    fetchTariffData();
-});
+    // 如果是第一个阶梯或者最后阶梯的上限是null
+    if (newLadders.length === 0) {
+        // 第一个阶梯
+        newLadders.push({
+            id: 1,
+            seq: 1,
+            upperBound: 100,
+            price: 2.5,
+            tariffVersion: {
+                type: 'electricity',
+                version: 'v1.0',
+                startTime: '2025-01-01',
+                endTime: '9999-12-31',
+                isActive: true
+            }
+        });
+    } else if (lastLadder) {
+        // 如果最后一个阶梯上限不是null，设置一个新的上限
+        let newUpperBound = null;
+        if (lastLadder.upperBound !== null) {
+            newUpperBound = lastLadder.upperBound + 20;
+        }
 
+        // 更新原来的最后一个阶梯，确保它有上限
+        if (lastLadder.upperBound === null) {
+            const lowerBound = newLadders.length === 1 ? 0 :
+                (newLadders[newLadders.length - 2]?.upperBound ?? 0);
+            lastLadder.upperBound = lowerBound + 20;
+        }
 
-// 计算属性：表单是否已更改
+        // 添加新阶梯
+        newLadders.push({
+            id: -1,
+            upperBound: newUpperBound,
+            price: lastLadder.price + 1,
+            seq: lastLadder.seq + 1,
+            tariffVersion: {
+                type: selectedTariffType.value,
+                version: nowVersion.value,
+                startTime: nowVersionDetails.value?.startTime || '',
+                endTime: '9999-12-31',
+                isActive: true
+            }
+        });
+    }
+
+    // 更新阶梯数据
+    if (groupData.value && selectedTariffType.value && nowVersion.value) {
+        (groupData.value[selectedTariffType.value] ??= {})[nowVersion.value] = newLadders;
+    }
+}
+
+// 移除阶梯
+function removeLadder(id: number): void {
+    const newLadders = [...ladders.value];
+    const index = newLadders.findIndex(ladder => ladder.id === id);
+    const deletedId: number = newLadders[index]?.id;
+    // console.log(index)
+    if (index === -1) return;
+
+    // 删除该阶梯
+    newLadders.splice(index, 1);
+
+    // 添加到删除列表
+    if (deletedId !== -1) deletedIds.value.push(deletedId)
+    console.log(deletedIds.value)
+
+    // 如果删除后没有阶梯了，添加一个默认阶梯
+    if (newLadders.length === 0) {
+        addLadder();
+        return;
+    }
+
+    // 如果删除的是最后一个阶梯，需要将前一个阶梯的上限设为null
+    if (index === newLadders.length && newLadders.length > 0) {
+        const lastIndex = newLadders.length - 1;
+        if (lastIndex >= 0 && newLadders[lastIndex]) {
+            newLadders[lastIndex].upperBound = null;
+        }
+    }
+
+    // 更新阶梯序号
+    for (let i = 0; i < newLadders.length; i++) {
+        if (newLadders[i]) {
+            newLadders[i].seq = i + 1;
+        }
+    }
+
+    // 更新阶梯数据
+    if (groupData.value && selectedTariffType.value && nowVersion.value) {
+        (groupData.value[selectedTariffType.value] ??= {})[nowVersion.value] = newLadders;
+    }
+}
+
+// 重置表单
+function resetForm(): void {
+    if (groupData.value && selectedTariffType.value && nowVersion.value) {
+        (groupData.value[selectedTariffType.value] ??= {})[nowVersion.value] = JSON.parse(JSON.stringify(originalLadders.value));
+    }
+    deletedIds.value = [];
+
+    ElMessage({
+        message: '表单已重置',
+        type: 'info',
+    });
+}
+
+// 表单是否已更改
 const isFormChanged = computed<boolean>(() => {
     if (originalLadders.value.length !== ladders.value.length) return true;
     return JSON.stringify(ladders.value) !== JSON.stringify(originalLadders.value);
 });
 
-// 更新阶梯价格
-function updateLadders(newLadders: TariffItem[]): void {
-    // 这里可以实现实际的更新逻辑
-    console.log("更新阶梯", newLadders);
-}
+watch(selectedTariffType, () => {
+    fetchTariffData();
+    resetForm()
+});// 当切换类型时重新获取数据
 
-// 添加阶梯
-function addLadder(): void {
-    // // 实现添加阶梯的逻辑
-    // const lastLadder = ladders.value[ladders.value.length - 1];
-    // const newId = lastLadder.id + 1;
-    // const newMin = lastLadder.max || 0;
-    //
-    // ladders.value.push({
-    //     id: newId,
-    //     min: newMin,
-    //     max: null,
-    //     price: lastLadder.price
-    // });
-    //
-    // // 更新前一个阶梯的max值
-    // if (lastLadder.max === null) {
-    //     lastLadder.max = newMin;
-    // }
-}
-
-// 移除阶梯
-function removeLadder(id: number): void {
-    // const index = ladders.value.findIndex(ladder => ladder.id === id);
-    // if (index === -1) return;
-    //
-    // // 如果删除的不是最后一个阶梯，需要调整下一个阶梯的min值
-    // if (index < ladders.value.length - 1) {
-    //     ladders.value[index + 1].min = ladders.value[index].min;
-    // }
-    //
-    // ladders.value.splice(index, 1);
-}
-
-
-
-// 重置表单
-function resetForm(): void {
-    // ladders.value = JSON.parse(JSON.stringify(originalLadders.value));
-    //
-    // ElMessage({
-    //     message: '表单已重置',
-    //     type: 'info',
-    // });
-}
-
-
-
+onMounted(() => {
+    fetchTariffData();
+});
 </script>
 
 <template>
@@ -281,7 +340,6 @@ function resetForm(): void {
                     </template>
                     <TariffLadderForm
                         :ladders="ladders"
-                        @update:ladders="updateLadders"
                         @add-ladder="addLadder"
                         @remove-ladder="removeLadder"
                         :unit="currentUnit"
@@ -385,4 +443,3 @@ function resetForm(): void {
   }
 }
 </style>
-
