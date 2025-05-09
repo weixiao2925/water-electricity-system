@@ -3,7 +3,8 @@ import TariffLadderForm from '~/components/admin/TariffLadderForm.vue';
 import TariffHistoryList from '~/components/admin/TariffHistoryList.vue';
 import { useTariffService } from "~/services/admin/tariff.js";
 import {groupByTypeAudVersion, type GroupedTariff, type TariffItem, type Version} from "~/types/admin/tariff/type";
-
+import isEqual from 'lodash/isEqual'
+import cloneDeep from 'lodash/cloneDeep'
 
 definePageMeta({
     layout: 'admin'
@@ -31,10 +32,16 @@ const currentVersionId = computed(() => {
 });// 当前版本ID
 const originalLadders = ref<TariffItem[]>([]); // 修改前的数据快照
 const deletedIds = ref<number[]>([])
+const isDirty = computed(() => !isEqual(ladders.value, originalLadders.value)) // 是否有未保存的脏数据
 
 
 // 获取价格数据和当前版本
 const fetchTariffData = () => {
+    // originalLadders.value = cloneDeep(ladders.value)
+    // console.log(ladders.value)
+    // console.log(originalLadders.value)
+    // console.log(isEqual(ladders.value, originalLadders.value))
+
     const promises = [
         useTariffService().apiTariffList(),
         useTariffService().apiTariffNowVersion(selectedTariffType.value),
@@ -46,13 +53,38 @@ const fetchTariffData = () => {
             nowVersionDetails.value = response[1].data;
             historyVersion.value = response[2].data;
             // 保存原始数据用于后续比较
-            originalLadders.value = JSON.parse(JSON.stringify(ladders.value));
-
+            originalLadders.value = cloneDeep(ladders.value)
             // console.log(selectedTariffType.value)
             // console.log(response);
             // console.log(response[2]);
         });
 };
+
+// 处理类型切换
+function handleTypeChange(newType: TARIFF_TYPES): void {
+    if (selectedTariffType.value === newType) {
+        return;
+    }
+
+    if (!isDirty.value) {
+        // 没有脏数据，直接切换
+        selectedTariffType.value = newType;
+        fetchTariffData();
+        return;
+    }
+
+    // 有脏数据，显示确认对话框
+    ElMessageBox.confirm('切换类型会丢失未保存的修改，确定继续吗？', '提示', {
+        type: 'warning',
+        confirmButtonText: '确定',
+        cancelButtonText: '取消'
+    })
+        .then(() => {
+            selectedTariffType.value = newType;
+            fetchTariffData();
+            resetForm();
+        })
+}
 
 // 当前版本信息
 const currentVersion = computed<string>(() => {
@@ -290,14 +322,21 @@ const isFormChanged = computed<boolean>(() => {
     return JSON.stringify(ladders.value) !== JSON.stringify(originalLadders.value);
 });
 
-watch(selectedTariffType, () => {
-    fetchTariffData();
-    resetForm()
-});// 当切换类型时重新获取数据
 
 onMounted(() => {
     fetchTariffData();
 });
+onBeforeRouteLeave((_to, _from, next) => {
+    if (!isDirty.value) return next()
+
+    ElMessageBox.confirm('您有未保存的修改，确定要离开吗？', '提示', {
+        type: 'warning',
+        confirmButtonText: '仍然离开',
+        cancelButtonText: '取消'
+    })
+        .then(() => next())
+        .catch(() => next(false))
+})
 </script>
 
 <template>
@@ -305,6 +344,7 @@ onMounted(() => {
         <div class="tariff-page">
             <div class="page-header">
                 <h1>价格配置</h1>
+                {{isDirty}}
                 <div class="actions">
                     <el-button type="primary" @click="saveCurrentTariff" :disabled="!isFormChanged">保存更改</el-button>
                     <el-button @click="resetForm">重置</el-button>
@@ -314,8 +354,8 @@ onMounted(() => {
             <el-card class="tariff-type-selector" shadow="hover">
                 <div class="type-selector">
                     <el-radio-group v-model="selectedTariffType" size="large">
-                        <el-radio-button :label="TARIFF_TYPES.Electricity">电价设置</el-radio-button>
-                        <el-radio-button :label="TARIFF_TYPES.Water">水价设置</el-radio-button>
+                        <el-radio-button :label="TARIFF_TYPES.Electricity" @click.native.prevent="handleTypeChange(TARIFF_TYPES.Electricity)">电价设置</el-radio-button>
+                        <el-radio-button :label="TARIFF_TYPES.Water" @click.native.prevent="handleTypeChange(TARIFF_TYPES.Water)">水价设置</el-radio-button>
                     </el-radio-group>
                 </div>
             </el-card>
