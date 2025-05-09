@@ -4,13 +4,16 @@ export interface TariffItem {
     seq: number;
     upperBound: number | null;
     price: number;
-    tariffVersion: {
-        type: 'water' | 'electricity' | 'gas';
-        version: string;
-        startTime: string;
-        endTime: string;
-        isActive: boolean;
-    }
+    tariffVersion: TariffVersion
+}
+
+export interface TariffVersion {
+    id: number;
+    type: 'water' | 'electricity' | 'gas';
+    version: string;
+    startTime: string;
+    endTime: string;
+    isActive: boolean;
 }
 
 export interface Version {

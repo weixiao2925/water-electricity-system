@@ -2,7 +2,7 @@
 import TariffLadderForm from '~/components/admin/TariffLadderForm.vue';
 import TariffHistoryList from '~/components/admin/TariffHistoryList.vue';
 import { useTariffService } from "~/services/admin/tariff.js";
-import {groupByTypeAudVersion, type GroupedTariff, type TariffItem, type Version} from "~/types/admin/tariff/type";
+import {groupByTypeAudVersion, type GroupedTariff, type TariffItem, type Version, type TariffVersion} from "~/types/admin/tariff/type";
 import isEqual from 'lodash/isEqual'
 import cloneDeep from 'lodash/cloneDeep'
 
@@ -10,6 +10,19 @@ definePageMeta({
     layout: 'admin'
 });
 
+// 新增：版本添加对话框相关状态
+const showAddVersionDialog = ref(false);
+const versionFormLoading = ref(false);
+const versionFormRules = {
+    version: [
+        { required: true, message: '请输入版本号', trigger: 'blur' },
+        { pattern: /^v\d+\.\d+(\.\d+)?$/, message: '版本号格式应为 v1.0 或 v1.0.1', trigger: 'blur' }
+    ],
+    startTime: [
+        { required: true, message: '请选择生效时间', trigger: 'change' }
+    ]
+};
+const versionFormRef = ref();
 
 const groupData = ref<GroupedTariff>({});
 const nowVersionDetails = ref<Version>();
@@ -17,6 +30,14 @@ const nowVersion = computed<string>(() => {
     return nowVersionDetails.value?.version || '';
 });
 const selectedTariffType = ref<TARIFF_TYPES>(TARIFF_TYPES.Electricity); // 当前选择的价格类型
+const newVersionForm = ref<TariffVersion>({
+    id: -1,
+    type: selectedTariffType.value,
+    version: '',
+    startTime: '',
+    endTime: '',
+    isActive: false
+})
 const historyVersion = ref<Version[]>([]); // 历史版本
 
 const getLadders = (type: TARIFF_TYPES): TariffItem[] => {
@@ -37,11 +58,6 @@ const isDirty = computed(() => !isEqual(ladders.value, originalLadders.value)) /
 
 // 获取价格数据和当前版本
 const fetchTariffData = () => {
-    // originalLadders.value = cloneDeep(ladders.value)
-    // console.log(ladders.value)
-    // console.log(originalLadders.value)
-    // console.log(isEqual(ladders.value, originalLadders.value))
-
     const promises = [
         useTariffService().apiTariffList(),
         useTariffService().apiTariffNowVersion(selectedTariffType.value),
@@ -54,9 +70,6 @@ const fetchTariffData = () => {
             historyVersion.value = response[2].data;
             // 保存原始数据用于后续比较
             originalLadders.value = cloneDeep(ladders.value)
-            // console.log(selectedTariffType.value)
-            // console.log(response);
-            // console.log(response[2]);
         });
 };
 
@@ -104,38 +117,83 @@ function formatDate(dateString: string): string {
 
 // 回滚到指定版本
 function rollbackToVersion(versionId: number): void {
-    const newVersion = historyVersion.value.find(data => {
-        return data.id === versionId
-    })?.version;
-    // console.log(newVersion);
-    ElMessageBox.confirm(
-        `确定要回滚到版本 ${newVersion} 吗？`,
-        '提示',
-        {
-            confirmButtonText: '确定',
-            cancelButtonText: '取消',
-            type: 'warning',
-        }
-    )
-        .then(() => {
-            useTariffService().apiTariffChangeVersion({
-                type: selectedTariffType.value,
-                oldId: currentVersionId.value,
-                newId: versionId
-            }).then(()=>{
-                fetchTariffData()
-                ElMessage({
-                    type: 'success',
-                    message: `已加载版本 ${newVersion} 的配置，请保存以应用更改。`,
-                });
+    if (!isDirty.value) {
+        const newVersion = historyVersion.value.find(data => {
+            return data.id === versionId
+        })?.version;
+        // console.log(newVersion);
+        ElMessageBox.confirm(
+            `确定要回滚到版本 ${newVersion} 吗？`,
+            '提示',
+            {
+                confirmButtonText: '确定',
+                cancelButtonText: '取消',
+                type: 'warning',
+            }
+        )
+            .then(() => {
+                useTariffService().apiTariffChangeVersion({
+                    type: selectedTariffType.value,
+                    oldId: currentVersionId.value,
+                    newId: versionId
+                }).then(()=>{
+                    fetchTariffData()
+                    ElMessage({
+                        type: 'success',
+                        message: `已加载版本 ${newVersion} 的配置，请保存以应用更改。`,
+                    });
+                })
             })
-        })
-        .catch(() => {
-            ElMessage({
-                type: 'info',
-                message: '已取消回滚操作',
+            .catch(() => {
+                ElMessage({
+                    type: 'info',
+                    message: '已取消回滚操作',
+                });
             });
-        });
+        return;
+    }
+
+    // 有脏数据，显示确认对话框
+    ElMessageBox.confirm('回滚版本会丢失未保存的修改，确定继续吗？', '提示', {
+        type: 'warning',
+        confirmButtonText: '确定',
+        cancelButtonText: '取消'
+    })
+        .then(() => {
+            const newVersion = historyVersion.value.find(data => {
+                return data.id === versionId
+            })?.version;
+            // console.log(newVersion);
+            ElMessageBox.confirm(
+                `确定要回滚到版本 ${newVersion} 吗？`,
+                '提示',
+                {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning',
+                }
+            )
+                .then(() => {
+                    useTariffService().apiTariffChangeVersion({
+                        type: selectedTariffType.value,
+                        oldId: currentVersionId.value,
+                        newId: versionId
+                    }).then(()=>{
+                        fetchTariffData()
+                        ElMessage({
+                            type: 'success',
+                            message: `已加载版本 ${newVersion} 的配置，请保存以应用更改。`,
+                        });
+                    })
+                })
+                .catch(() => {
+                    ElMessage({
+                        type: 'info',
+                        message: '已取消回滚操作',
+                    });
+                });
+        })
+
 }
 
 // 保存当前阶梯价格配置
@@ -213,14 +271,15 @@ function addLadder(): void {
     if (newLadders.length === 0) {
         // 第一个阶梯
         newLadders.push({
-            id: 1,
+            id: -1,
             seq: 1,
-            upperBound: 100,
+            upperBound: 10,
             price: 2.5,
             tariffVersion: {
-                type: 'electricity',
-                version: 'v1.0',
-                startTime: '2025-01-01',
+                id: currentVersionId.value,
+                type: selectedTariffType.value,
+                version: nowVersion.value,
+                startTime: nowVersionDetails.value?.startTime || '',
                 endTime: '9999-12-31',
                 isActive: true
             }
@@ -246,6 +305,7 @@ function addLadder(): void {
             price: lastLadder.price + 1,
             seq: lastLadder.seq + 1,
             tariffVersion: {
+                id: currentVersionId.value,
                 type: selectedTariffType.value,
                 version: nowVersion.value,
                 startTime: nowVersionDetails.value?.startTime || '',
@@ -322,6 +382,43 @@ const isFormChanged = computed<boolean>(() => {
     return JSON.stringify(ladders.value) !== JSON.stringify(originalLadders.value);
 });
 
+// 打开添加版本对话框
+const openAddVersionDialog = (): void => {
+    showAddVersionDialog.value = true;
+    newVersionForm.value = {
+        id: -1,
+        type: selectedTariffType.value,
+        version: '',
+        startTime: '',
+        endTime: '9999-12-31',
+        isActive: false
+    };
+}
+
+// 提交新版本
+const submitNewVersion = async () => {
+    if (!versionFormRef.value) return;
+
+    await versionFormRef.value.validate(async (valid: boolean) => {
+        if (valid) {
+            versionFormLoading.value = true;
+            useTariffService()
+                .apiTariffAddVersion(newVersionForm.value)
+                .then(_ => {
+                    ElMessage({
+                        type: 'success',
+                        message: '新版本创建成功'
+                    });
+
+                    showAddVersionDialog.value = false;
+                    fetchTariffData();
+                })
+                .finally(()=>{
+                    versionFormLoading.value = false;
+                })
+        }
+    });
+};
 
 onMounted(() => {
     fetchTariffData();
@@ -336,7 +433,7 @@ onBeforeRouteLeave((_to, _from, next) => {
     })
         .then(() => next())
         .catch(() => next(false))
-})
+    })
 </script>
 
 <template>
@@ -344,7 +441,6 @@ onBeforeRouteLeave((_to, _from, next) => {
         <div class="tariff-page">
             <div class="page-header">
                 <h1>价格配置</h1>
-                {{isDirty}}
                 <div class="actions">
                     <el-button type="primary" @click="saveCurrentTariff" :disabled="!isFormChanged">保存更改</el-button>
                     <el-button @click="resetForm">重置</el-button>
@@ -390,6 +486,11 @@ onBeforeRouteLeave((_to, _from, next) => {
                     <template #header>
                         <div class="card-header">
                             <span>历史版本</span>
+                            <div>
+                                <el-button circle type="primary" @click="openAddVersionDialog">
+                                    <el-icon><ElIconPlus/></el-icon>
+                                </el-button>
+                            </div>
                         </div>
                     </template>
                     <TariffHistoryList
@@ -400,6 +501,59 @@ onBeforeRouteLeave((_to, _from, next) => {
                 </el-card>
             </div>
         </div>
+
+        <!-- 添加版本对话框 -->
+        <el-dialog
+            v-model="showAddVersionDialog"
+            title="添加新版本"
+            width="500px"
+            :close-on-click-modal="false"
+        >
+            <el-form
+                ref="versionFormRef"
+                :model="newVersionForm"
+                :rules="versionFormRules"
+                label-width="80px"
+                label-position="right"
+            >
+                <el-form-item label="版本号" prop="version">
+                    <el-input
+                        v-model="newVersionForm.version"
+                        placeholder="请输入版本号，如 v1.0"
+                    />
+                </el-form-item>
+                <el-form-item label="开始时间" prop="startTime">
+                    <el-date-picker
+                        v-model="newVersionForm.startTime"
+                        type="date"
+                        placeholder="选择生效时间"
+                        format="YYYY-MM-DD"
+                        value-format="YYYY-MM-DD"
+                        style="width: 100%"
+                    />
+                </el-form-item>
+                <el-form-item label="结束时间">
+                    <el-date-picker
+                        v-model="newVersionForm.endTime"
+                        type="date"
+                        placeholder="选择生效时间"
+                        format="YYYY-MM-DD"
+                        value-format="YYYY-MM-DD"
+                        style="width: 100%"
+                    />
+                </el-form-item>
+            </el-form>
+            <template #footer>
+                <el-button @click="showAddVersionDialog = false">取消</el-button>
+                <el-button
+                    type="primary"
+                    @click="submitNewVersion"
+                    :loading="versionFormLoading"
+                >
+                    创建
+                </el-button>
+            </template>
+        </el-dialog>
     </NuxtLayout>
 </template>
 

@@ -1,4 +1,4 @@
-import type {TariffTierSaveRequest, VersionChange} from "~/types/admin/tariff/type";
+import type {TariffTierSaveRequest, TariffVersion, VersionChange} from "~/types/admin/tariff/type";
 
 export function useTariffService(){
     const { $api } = useNuxtApp()
@@ -22,6 +22,9 @@ export function useTariffService(){
         },
         apiTariffSave: async (type: string, versionId: number, tiers: TariffTierSaveRequest) => {
             return await $api.post(`api/admin/tariff/save?type=${type}&versionId=${versionId}`, tiers)
+        },
+        apiTariffAddVersion: async (data: TariffVersion) => {
+            return await $api.post(`api/admin/tariff/version-add`, data)
         }
     }
 }
