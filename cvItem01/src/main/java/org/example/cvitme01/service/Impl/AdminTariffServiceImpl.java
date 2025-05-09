@@ -160,5 +160,24 @@ public class AdminTariffServiceImpl implements AdminTariffService {
         return total > 0 ? null : "未知错误，请联系管理员";
     }
 
+    @Override
+    public String addTariffVersionAdd(TariffVersion version) {
+        var result = sqlClient.getEntities().saveCommand(
+                TariffVersionDraft.$.produce(draft -> {
+                    draft.setType(version.type());
+                    draft.setVersion(version.version());
+                    draft.setStartTime(version.startTime());
+                    draft.setEndTime(version.endTime());
+                    draft.setIsActive(false);
+                })
+        ).setMode(SaveMode.INSERT_ONLY).execute();
+
+        return result.getTotalAffectedRowCount() > 0
+                ? null
+                : "未知错误，请联系管理员";
+    }
+
+
+
 
 }

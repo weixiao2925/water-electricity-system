@@ -2,6 +2,7 @@ package org.example.cvitme01.entity.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import org.babyfish.jimmer.sql.*;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Date;
 
@@ -20,6 +21,7 @@ public interface TariffVersion {
     Date startTime();
 
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
+    @Nullable
     Date endTime();
 
     Boolean isActive();

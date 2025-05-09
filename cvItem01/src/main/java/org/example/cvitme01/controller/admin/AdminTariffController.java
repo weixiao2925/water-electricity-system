@@ -69,6 +69,14 @@ public class AdminTariffController {
                 : RestBean.failure(400, message);
     }
 
+    @PostMapping("/version-add")
+    public RestBean<String> addTariffVersion(@RequestBody TariffVersion version){
+        String message = adminTariffService.addTariffVersionAdd(version);
+        return message == null
+                ? RestBean.success()
+                : RestBean.failure(400, message);
+    }
+
 
 
 

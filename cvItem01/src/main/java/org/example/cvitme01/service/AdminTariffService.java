@@ -12,4 +12,5 @@ public interface AdminTariffService {
     List<TariffVersion> getVersion(String type);
     String changeTariffVersion(String type, long oldId, long newId);
     String saveTariffTier(String type, long versionId, TariffTierSaveRequest request);
+    String addTariffVersionAdd(TariffVersion version);
 }
