@@ -6,11 +6,14 @@ import org.babyfish.jimmer.sql.ast.mutation.MutableUpdate;
 import org.babyfish.jimmer.sql.ast.mutation.SaveMode;
 import org.babyfish.jimmer.sql.fetcher.Fetcher;
 import org.example.cvitme01.entity.dto.*;
+import org.example.cvitme01.entity.vo.request.TariffTierSaveRequest;
 import org.example.cvitme01.service.AdminTariffService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -37,11 +40,6 @@ public class AdminTariffServiceImpl implements AdminTariffService {
                 .createQuery(table)
                 .select(table.fetch(fetcher))
                 .execute();
-    }
-
-    @Override
-    public String addTariffTier(TariffTier tariffTier) {
-        return "";
     }
 
     @Override
@@ -98,37 +96,68 @@ public class AdminTariffServiceImpl implements AdminTariffService {
     @Override
     @Transactional
     public synchronized String saveTariffTier(
-            String type, long versionId, List<TariffTier> tariffTiers) {
+            String type, long versionId, TariffTierSaveRequest request) {
 
-        List<TariffTier> draftList = tariffTiers.stream()
-                .map(tier -> TariffTierDraft.$.produce(draft -> {
-                    if (tier.id() > 0) {
-                        draft.setId(tier.id());
+        Map<Boolean, List<TariffTier>> parts = request.getTariffTiers()
+                .stream()
+                .collect(Collectors.partitioningBy(t -> t.id() > 0));
+
+        List<TariffTier> updateSource = parts.get(true);
+        List<TariffTier> insertSource = parts.get(false);
+
+        // 删
+        List<Long> deleteIds = request.getDeletedIds();
+        if (deleteIds != null && !deleteIds.isEmpty())
+            sqlClient
+                    .getEntities()
+                    .deleteAll(TariffTier.class, deleteIds);
+
+        // 改
+        List<TariffTier> updateDrafts = updateSource.stream()
+                .map(t -> TariffTierDraft.$.produce(d -> {
+                    d.setId(t.id());
+                    d.setSeq(t.seq());
+
+                    if (t.upperBound() != null) {
+                        d.setUpperBound(t.upperBound());
                     }
-                    draft.setSeq(tier.seq());
-                    draft.setUpperBound(tier.upperBound());
-                    draft.setPrice(tier.price());
 
-                    draft.setTariffVersion(
-                            TariffVersionDraft.$.produce(versionDraft -> {
-                                versionDraft.setId(versionId);
-                                versionDraft.setType(type);
-                                versionDraft.setVersion(tier.tariffVersion().version());
-                                versionDraft.setStartTime(tier.tariffVersion().startTime());
-                                versionDraft.setEndTime(tier.tariffVersion().endTime());
-                                versionDraft.setIsActive(true);
-                            })
-                    );
+                    d.setPrice(t.price());
                 }))
                 .toList();
 
-        int totalAffected = sqlClient.getEntities()
-                .saveEntitiesCommand(draftList)
-                .setMode(SaveMode.UPSERT)
-                .execute()
-                .getTotalAffectedRowCount();
+        int updateRows = 0;
+        if (!updateDrafts.isEmpty()) {
+            updateRows = sqlClient.getEntities()
+                    .saveEntitiesCommand(updateDrafts)
+                    .setMode(SaveMode.UPDATE_ONLY)
+                    .execute()
+                    .getTotalAffectedRowCount();
+        }
 
-        return totalAffected > 0 ? null : "未知错误，请联系管理员";
+        // 添
+        List<TariffTier> insertDrafts = insertSource.stream()
+                .map(t -> TariffTierDraft.$.produce(d -> {
+                    d.setSeq(t.seq());
+                    if (t.upperBound() != null) {
+                        d.setUpperBound(t.upperBound());
+                    }
+                    d.setPrice(t.price());
+                    d.setTariffVersionId(versionId);
+                }))
+                .toList();
+
+        int insertRows = 0;
+        if (!insertDrafts.isEmpty()) {
+            insertRows = sqlClient.getEntities()
+                    .saveEntitiesCommand(insertDrafts)
+                    .setMode(SaveMode.INSERT_ONLY)
+                    .execute()
+                    .getTotalAffectedRowCount();
+        }
+
+        int total = insertRows + updateRows;
+        return total > 0 ? null : "未知错误，请联系管理员";
     }
 
 

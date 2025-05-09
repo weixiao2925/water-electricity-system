@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.example.cvitme01.entity.RestBean;
 import org.example.cvitme01.entity.dto.TariffTier;
 import org.example.cvitme01.entity.dto.TariffVersion;
+import org.example.cvitme01.entity.vo.request.TariffTierSaveRequest;
 import org.example.cvitme01.service.AdminTariffService;
 import org.springframework.web.bind.annotation.*;
 
@@ -61,8 +62,8 @@ public class AdminTariffController {
             @RequestParam("type") @Valid @NotNull
             @Pattern(regexp = "water|electricity") String type,
             @RequestParam("versionId") long versionId,
-            @RequestBody List<TariffTier> tariffTiers) {
-        String message = adminTariffService.saveTariffTier(type, versionId, tariffTiers);
+            @RequestBody TariffTierSaveRequest request) {
+        String message = adminTariffService.saveTariffTier(type, versionId, request);
         return message == null
                 ? RestBean.success()
                 : RestBean.failure(400, message);

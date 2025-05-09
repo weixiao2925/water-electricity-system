@@ -1,5 +1,6 @@
 package org.example.cvitme01.entity.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import org.babyfish.jimmer.sql.*;
 
 import java.util.Date;
@@ -15,8 +16,10 @@ public interface TariffVersion {
 
     String version();
 
+    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
     Date startTime();
 
+    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
     Date endTime();
 
     Boolean isActive();

@@ -13,6 +13,7 @@ public interface TariffTier {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     long id();
 
+    @Key
     short seq();
 
     @Nullable
