@@ -56,6 +56,18 @@ public class AdminTariffController {
                 : RestBean.failure(400, message);
     }
 
+    @PostMapping("/save")
+    public RestBean<String> saveTariffTier(
+            @RequestParam("type") @Valid @NotNull
+            @Pattern(regexp = "water|electricity") String type,
+            @RequestParam("versionId") long versionId,
+            @RequestBody List<TariffTier> tariffTiers) {
+        String message = adminTariffService.saveTariffTier(type, versionId, tariffTiers);
+        return message == null
+                ? RestBean.success()
+                : RestBean.failure(400, message);
+    }
+
 
 
 

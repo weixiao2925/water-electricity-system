@@ -3,6 +3,7 @@ package org.example.cvitme01.service.Impl;
 import lombok.RequiredArgsConstructor;
 import org.babyfish.jimmer.sql.JSqlClient;
 import org.babyfish.jimmer.sql.ast.mutation.MutableUpdate;
+import org.babyfish.jimmer.sql.ast.mutation.SaveMode;
 import org.babyfish.jimmer.sql.fetcher.Fetcher;
 import org.example.cvitme01.entity.dto.*;
 import org.example.cvitme01.service.AdminTariffService;
@@ -93,4 +94,42 @@ public class AdminTariffServiceImpl implements AdminTariffService {
                 ? null
                 : "未知错误，请联系管理员";
     }
+
+    @Override
+    @Transactional
+    public synchronized String saveTariffTier(
+            String type, long versionId, List<TariffTier> tariffTiers) {
+
+        List<TariffTier> draftList = tariffTiers.stream()
+                .map(tier -> TariffTierDraft.$.produce(draft -> {
+                    if (tier.id() > 0) {
+                        draft.setId(tier.id());
+                    }
+                    draft.setSeq(tier.seq());
+                    draft.setUpperBound(tier.upperBound());
+                    draft.setPrice(tier.price());
+
+                    draft.setTariffVersion(
+                            TariffVersionDraft.$.produce(versionDraft -> {
+                                versionDraft.setId(versionId);
+                                versionDraft.setType(type);
+                                versionDraft.setVersion(tier.tariffVersion().version());
+                                versionDraft.setStartTime(tier.tariffVersion().startTime());
+                                versionDraft.setEndTime(tier.tariffVersion().endTime());
+                                versionDraft.setIsActive(true);
+                            })
+                    );
+                }))
+                .toList();
+
+        int totalAffected = sqlClient.getEntities()
+                .saveEntitiesCommand(draftList)
+                .setMode(SaveMode.UPSERT)
+                .execute()
+                .getTotalAffectedRowCount();
+
+        return totalAffected > 0 ? null : "未知错误，请联系管理员";
+    }
+
+
 }
