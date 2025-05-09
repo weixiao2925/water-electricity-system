@@ -502,7 +502,6 @@ onBeforeRouteLeave((_to, _from, next) => {
             </div>
         </div>
 
-        <!-- 添加版本对话框 -->
         <el-dialog
             v-model="showAddVersionDialog"
             title="添加新版本"
