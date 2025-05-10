@@ -1,20 +1,14 @@
 <script setup lang="ts">
 // 模拟数据
+import {useDashboardService} from "~/services/home/dashboard";
+import {type RecentData, type SumData, typeLabelMap} from "~/types/home/dashboard/type";
+import {formatDateTime} from "~/utils/time";
+
 const meterTypes = ['水表', '电表', '气表'];
-const overviewData = [
-    { type: '水表', current: 123.5, unit: 'm³', change: 5.2, changePercent: 2.3, cost: 78.4 },
-    { type: '电表', current: 568.7, unit: 'kWh', change: 15.8, changePercent: 3.1, cost: 195.6 },
-    { type: '气表', current: 89.2, unit: 'm³', change: -2.1, changePercent: -2.5, cost: 167.3 }
-];
+const overviewData = ref<SumData[]>([])
 
 // 最近5次读数数据
-const recentReadings = [
-    { id: 1, type: '水表', reading: 123.5, time: '2023-05-01', cost: 78.4 },
-    { id: 2, type: '电表', reading: 568.7, time: '2023-05-01', cost: 195.6 },
-    { id: 3, type: '气表', reading: 89.2, time: '2023-05-01', cost: 167.3 },
-    { id: 4, type: '水表', reading: 118.3, time: '2023-04-01', cost: 73.2 },
-    { id: 5, type: '电表', reading: 552.9, time: '2023-04-01', cost: 190.1 },
-];
+const recentReadings = ref<RecentData[]>([])
 
 // 月度数据，用于折线图
 const monthlyData = {
@@ -24,6 +18,20 @@ const monthlyData = {
     gas: [78, 80, 83, 85, 87, 89.2]
 };
 
+const fetchData = () => {
+    const api = [
+        useDashboardService().apiSum(),
+        useDashboardService().apiRecentData(),
+    ]
+    Promise.all(api)
+        .then(res => {
+            // console.log(res);
+            overviewData.value = res[0].data
+            recentReadings.value = res[1].data
+            // console.log(overviewData.value);
+        })
+}
+
 // 当前选中的图表类型
 const selectedChartType = ref('水表');
 
@@ -31,6 +39,9 @@ const setChartType = (type:any) => {
     selectedChartType.value = type;
 };
 
+onMounted(()=>{
+    fetchData()
+})
 definePageMeta({
     layout: "home"
 })
@@ -40,20 +51,16 @@ definePageMeta({
     <NuxtLayout>
         <div class="dashboard">
             <h1 class="dashboard-title">仪表盘概览</h1>
-
             <!-- 概览卡片区域 -->
             <div class="overview-cards">
                 <div v-for="item in overviewData" :key="item.type" class="card">
-                    <h2>{{ item.type }}</h2>
+                    <h2>{{ typeLabelMap[item.type] }}</h2>
                     <div class="reading">
                         <span class="value">{{ item.current }}</span>
                         <span class="unit">{{ item.unit }}</span>
                     </div>
-                    <div class="change" :class="{ 'positive': item.change > 0, 'negative': item.change < 0 }">
-                        <span>{{ item.change > 0 ? '+' : '' }}{{ item.change }} ({{ item.changePercent }}%)</span>
-                    </div>
                     <div class="cost">
-                        <span>本月费用: ¥{{ item.cost.toFixed(2) }}</span>
+                        <span>今年费用: ¥{{ item.cost.toFixed(2) }}</span>
                     </div>
                 </div>
             </div>
@@ -100,8 +107,8 @@ definePageMeta({
                     <tbody>
                     <tr v-for="reading in recentReadings" :key="reading.id">
                         <td>{{ reading.type }}</td>
-                        <td>{{ reading.reading }}</td>
-                        <td>{{ reading.time }}</td>
+                        <td>{{ reading.value }}</td>
+                        <td>{{ formatDateTime(reading.shotTime) }}</td>
                         <td>{{ reading.cost.toFixed(2) }}</td>
                     </tr>
                     </tbody>
