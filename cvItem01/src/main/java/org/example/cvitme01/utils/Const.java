@@ -33,4 +33,9 @@ public class Const {
 
     // Minio相关
     public static final String MINIO_WATER = "/water/";
+
+    // 类型相关
+    public static final String WATER = "water";
+    public static final String ELECTRICITY = "electricity";
+    public static final String GAS = "gas";
 }

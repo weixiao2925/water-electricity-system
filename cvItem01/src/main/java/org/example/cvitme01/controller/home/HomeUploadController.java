@@ -29,9 +29,10 @@ public class HomeUploadController {
     }
 
     @PostMapping("/image/save")
-    public RestBean<String> saveImage(@RequestBody @Valid Reading reading,
-                                       @RequestAttribute(Const.ATTR_USER_ID) int id) throws Exception {
-        String message = homeUploadService.saveImage(reading, id);
+    public RestBean<String> saveImage(@RequestParam("type") @Valid @NotNull @Pattern(regexp = "(water|electricity)") String type,
+                                      @RequestBody @Valid Reading reading,
+                                      @RequestAttribute(Const.ATTR_USER_ID) int id) throws Exception {
+        String message = homeUploadService.saveImage(type, reading, id);
         return message == null
                 ? RestBean.success()
                 : RestBean.failure(400, message);

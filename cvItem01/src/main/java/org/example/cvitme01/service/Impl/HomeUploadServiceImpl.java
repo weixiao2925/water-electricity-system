@@ -47,18 +47,12 @@ public class HomeUploadServiceImpl implements HomeUploadService {
 
     @Override
     public Reading uploadImage(MultipartFile file, String type, int id) throws Exception {
-        return switch (type) {
-            case "water" -> water(file);
-            case "electricity" ->
-                // Implement electricity handling here
-                    null;
-            default -> throw new IllegalArgumentException("Invalid type: " + type);
-        };
+        return read(type, file);
     }
 
     @Override
     @Transactional
-    public synchronized String saveImage(Reading reading, int id) {
+    public synchronized String saveImage(String selectType, Reading reading, int id) {
         Meter inputMeter = reading.meter();
         if (inputMeter == null || inputMeter.location() == null) return "仪表位置信息不能为空";
         String location = inputMeter.location();
@@ -99,7 +93,7 @@ public class HomeUploadServiceImpl implements HomeUploadService {
                 draft.applyMeter(m -> m.setId(meterId));
                 // 计算 delta 和 cost，
                 // draft.setDelta(calculateDelta(...));
-                 draft.setCost(this.computedCost(draft.value()));
+                 draft.setCost(this.computedCost(selectType, draft.value()));
             });
 
             sqlClient.getEntities().saveCommand(readingToSave)
@@ -113,7 +107,7 @@ public class HomeUploadServiceImpl implements HomeUploadService {
         }
     }
 
-    private Reading water(MultipartFile file) throws IOException {
+    private Reading read(String type, MultipartFile file) throws IOException {
         MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
 
         ByteArrayResource resource = new ByteArrayResource(file.getBytes()) {
@@ -129,12 +123,22 @@ public class HomeUploadServiceImpl implements HomeUploadService {
         multipartHeaders.setContentType(MediaType.MULTIPART_FORM_DATA);
 
         HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, multipartHeaders);
+        JSONObject response;
 
-        JSONObject response = restTemplate.postForObject(
-                "http://localhost:5000/api/read_water_meter",
-                requestEntity,
-                JSONObject.class
-        );
+        if (type.equals(Const.WATER)) {
+            response = restTemplate.postForObject(
+                    "http://localhost:5000/api/read_water_meter",
+                    requestEntity,
+                    JSONObject.class
+            );
+        }else {
+            response = restTemplate.postForObject(
+                    "http://localhost:5000/api/read_electricity_meter",
+                    requestEntity,
+                    JSONObject.class
+            );
+        }
+
 
         if (response == null) return null;
 
@@ -162,7 +166,7 @@ public class HomeUploadServiceImpl implements HomeUploadService {
                     draft.setShotTime(LocalDateTime.now());
                     draft.setValue(reading);
                     draft.setImageUrl(finalImageName);
-                    draft.setCost(this.computedCost(reading));
+                    draft.setCost(this.computedCost(type, reading));
                 });
             } catch (Exception e) {
                 log.error("图片上传出现问题: {}", e.getMessage(), e);
@@ -173,14 +177,14 @@ public class HomeUploadServiceImpl implements HomeUploadService {
         return null;
     }
 
-    private Standard getStandard(int seq) {
+    private Standard getStandard(String type ,int seq) {
         TariffTierTable table = TariffTierTable.$;
         Fetcher<TariffTier> fetcher = TariffTierFetcher.$
                 .upperBound()
                 .price();
 
         TariffTier tier = sqlClient.createQuery(table)
-                .where(table.tariffVersion().type().eq("water"))
+                .where(table.tariffVersion().type().eq(type))
                 .where(table.tariffVersion().isActive().eq(true))
                 .where(table.seq().eq((short)seq))
                 .select(table.fetch(fetcher))
@@ -192,16 +196,16 @@ public class HomeUploadServiceImpl implements HomeUploadService {
             vo.setUpperBound(tier.upperBound());
             vo.setPrice(tier.price());
         } else {
-            log.error("没有找到对应的水费阶梯信息");
+            log.error("没有找到对应的费用阶梯信息");
             return null;
         }
         return vo;
     }
 
-    private BigDecimal computedCost(BigDecimal value) {
-        Standard one = getStandard(1);
-        Standard two = getStandard(2);
-        Standard three = getStandard(3);
+    private BigDecimal computedCost(String type, BigDecimal value) {
+        Standard one = getStandard(type,1);
+        Standard two = getStandard(type,2);
+        Standard three = getStandard(type,3);
 
         if (one == null || two == null || three == null) return null;
 
