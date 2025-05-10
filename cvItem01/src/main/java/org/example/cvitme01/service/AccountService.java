@@ -1,6 +1,8 @@
 package org.example.cvitme01.service;
 
 import org.example.cvitme01.entity.dto.Account;
+import org.example.cvitme01.entity.vo.request.EmailRegisterVO;
+import org.example.cvitme01.entity.vo.request.EmailResetVO;
 import org.example.cvitme01.entity.vo.request.PasswordUpdateVO;
 import org.springframework.security.core.userdetails.UserDetailsService;
 
@@ -10,4 +12,8 @@ public interface AccountService extends UserDetailsService {
     Account findAccountWithDetailsById(Integer id);
     boolean updateAccountInfo(Integer id, Account account);
     String updateAccountPassword(Integer id, PasswordUpdateVO vo);
+
+    String registerEmailVerifyCode(String email);
+    String registerEmailAccount(EmailRegisterVO vo);
+    String resetEmailAccountPassword(EmailResetVO vo);
 }
