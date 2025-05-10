@@ -37,6 +37,25 @@ export function useAuthService() {
                 throw error
             }
 
+        },
+        register: (username: string, password: string, email: string, code: string) => {
+            return $api.post('/api/auth/register', {
+                username,
+                password,
+                email,
+                code
+            })
+        },
+        sendEmailCode: (email: string) => {
+            return $api.get(`/api/auth/ask-code?email=${email}`)
+        },
+        resetPassword: (email: string, code: string, password: string) => {
+            return $api.post('/api/auth/reset-password', {
+                email,
+                code,
+                password
+            })
         }
     }
 }
+

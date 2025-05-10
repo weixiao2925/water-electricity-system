@@ -10,7 +10,7 @@ export default defineNuxtRouteMiddleware((to, from) => {
 
     const event = useRequestEvent()
     // 定义白名单路由，用户可以在未授权的情况下访问这些路由
-    const whiteList = ['/welcome', '/welcome/register'];
+    const whiteList = ['/welcome', '/welcome/register', '/welcome/reset'];
 
     // 检查用户是否未授权且目标路由不在白名单中
     if (isUnauthorized(event)) {

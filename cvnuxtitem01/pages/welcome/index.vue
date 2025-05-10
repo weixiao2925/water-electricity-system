@@ -59,6 +59,14 @@ const userLogin = () =>{
         })
 }
 
+const goToRegister = () => {
+    router.push('/welcome/register')
+}
+
+const goToReset = () => {
+    router.push('/welcome/reset')
+}
+
 </script>
 
 <template>
@@ -91,7 +99,17 @@ const userLogin = () =>{
                         </el-input>
                     </el-form-item>
                     <el-form-item>
-                        <el-checkbox v-model="form.remember_me">自动登录</el-checkbox>
+                        <div style="width: 100%;display: flex; justify-content: space-between;">
+                            <el-checkbox v-model="form.remember_me">自动登录</el-checkbox>
+                            <div>
+                                <el-text type="info" @click="goToRegister" style="cursor: pointer; margin-right: 15px;">
+                                    注册账号
+                                </el-text>
+                                <el-text type="info" @click="goToReset" style="cursor: pointer;">
+                                    忘记密码
+                                </el-text>
+                            </div>
+                        </div>
                     </el-form-item>
                     <el-button type="danger" plain style="width: 100%" @click="submit">
                         Login in
