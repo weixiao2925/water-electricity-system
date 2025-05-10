@@ -5,7 +5,6 @@ export function useUploadService() {
 
   return {
     apiUpload: async (data: UploadParams) => {
-      // 创建FormData对象来发送文件
       const formData = new FormData();
       formData.append('file', data.file);
       formData.append('type', data.type);

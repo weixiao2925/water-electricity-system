@@ -54,7 +54,8 @@ const confirmSave = () => {
 
     formRef.value.validate((valid: boolean) => {
         if (valid) {
-            const type:string = selectedMeterType.value === '水表' ? 'water' : selectedMeterType.value === '电表' ? 'electricity' : 'gas'
+            const type = selectedMeterType.value === '水表' ? 'water' : 'electricity'
+            // console.log('type', type)
             uploadService
                 .apiUploadSave(type, reading)
                 .then(_ => {
@@ -63,7 +64,7 @@ const confirmSave = () => {
                     reading.value = -1
                     reading.shotTime = null
                     reading.imageUrl = null
-                    reading.meter.type = selectedMeterType.value === '水表' ? 'water' : 'electricity'
+                    reading.meter.type = type
                     reading.meter.location = null
                     dialogVisible.value = false
                     lock.value = true
