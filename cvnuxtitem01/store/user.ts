@@ -31,7 +31,7 @@ export const useUserStore = defineStore('user', {
                 const { apiBase } = useRuntimeConfig().public
                 return `${apiBase}/api/image${this.user.avatar}`
             } else
-                return 'https://www.keaitupian.cn/cjpic/frombd/1/253/1215285637/1396751085.jpg';
+                return 'https://gss0.baidu.com/7Ls0a8Sm2Q5IlBGlnYG/sys/portrait/item/tb.1.2a112596.L6LokNyU4dYGPEGmLnRIrw';
             //http://localhost:8848/api/image/avatar/4aa54576fc914ee697380d43605c8f1f
         },
     },
