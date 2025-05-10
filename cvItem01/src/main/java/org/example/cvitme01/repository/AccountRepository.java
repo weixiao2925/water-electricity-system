@@ -5,4 +5,5 @@ import org.example.cvitme01.entity.dto.Account;
 
 public interface AccountRepository extends JRepository<Account, Long> {
     Account findByUsername(String username);
+    Account findByEmail(String email);
 }

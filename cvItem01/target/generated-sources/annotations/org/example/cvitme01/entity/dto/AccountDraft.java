@@ -63,6 +63,7 @@ public interface AccountDraft extends Account, Draft {
     @OldChain
     AccountDraft setRegisterTime(Date registerTime);
 
+    @Nullable
     AccountDetailsDraft details();
 
     AccountDetailsDraft details(boolean autoCreate);
@@ -70,11 +71,12 @@ public interface AccountDraft extends Account, Draft {
     @OldChain
     AccountDraft setDetails(AccountDetails details);
 
+    @Nullable
     @JsonIgnore
-    long detailsId();
+    Long detailsId();
 
     @OldChain
-    AccountDraft setDetailsId(long detailsId);
+    AccountDraft setDetailsId(@Nullable Long detailsId);
 
     @OldChain
     AccountDraft applyDetails(DraftConsumer<AccountDetailsDraft> block);
@@ -116,9 +118,9 @@ public interface AccountDraft extends Account, Draft {
             .add(SLOT_PASSWORD, "password", ImmutablePropCategory.SCALAR, String.class, false)
             .add(SLOT_EMAIL, "email", ImmutablePropCategory.SCALAR, String.class, false)
             .add(SLOT_ROLE, "role", ImmutablePropCategory.SCALAR, String.class, false)
-            .add(SLOT_AVATAR, "avatar", ImmutablePropCategory.SCALAR, String.class, false)
+            .add(SLOT_AVATAR, "avatar", ImmutablePropCategory.SCALAR, String.class, true)
             .add(SLOT_REGISTER_TIME, "registerTime", ImmutablePropCategory.SCALAR, Date.class, false)
-            .add(SLOT_DETAILS, "details", OneToOne.class, AccountDetails.class, false)
+            .add(SLOT_DETAILS, "details", OneToOne.class, AccountDetails.class, true)
             .build();
 
         private Producer() {
@@ -209,6 +211,7 @@ public interface AccountDraft extends Account, Draft {
                 return role();
             }
 
+            @Nullable
             public final String getAvatar() {
                 return avatar();
             }
@@ -217,6 +220,7 @@ public interface AccountDraft extends Account, Draft {
                 return registerTime();
             }
 
+            @Nullable
             public final AccountDetails getDetails() {
                 return details();
             }
@@ -251,9 +255,13 @@ public interface AccountDraft extends Account, Draft {
 
             String __avatarValue;
 
+            boolean __avatarLoaded = false;
+
             Date __registerTimeValue;
 
             AccountDetails __detailsValue;
+
+            boolean __detailsLoaded = false;
 
             @Override
             @JsonIgnore
@@ -302,8 +310,9 @@ public interface AccountDraft extends Account, Draft {
 
             @Override
             @JsonIgnore
+            @Nullable
             public String avatar() {
-                if (__avatarValue == null) {
+                if (!__avatarLoaded) {
                     throw new UnloadedException(Account.class, "avatar");
                 }
                 return __avatarValue;
@@ -320,8 +329,9 @@ public interface AccountDraft extends Account, Draft {
 
             @Override
             @JsonIgnore
+            @Nullable
             public AccountDetails details() {
-                if (__detailsValue == null) {
+                if (!__detailsLoaded) {
                     throw new UnloadedException(Account.class, "details");
                 }
                 return __detailsValue;
@@ -353,11 +363,11 @@ public interface AccountDraft extends Account, Draft {
                     case SLOT_ROLE:
                     		return __roleValue != null;
                     case SLOT_AVATAR:
-                    		return __avatarValue != null;
+                    		return __avatarLoaded;
                     case SLOT_REGISTER_TIME:
                     		return __registerTimeValue != null;
                     case SLOT_DETAILS:
-                    		return __detailsValue != null;
+                    		return __detailsLoaded;
                     default: throw new IllegalArgumentException("Illegal property name for \"org.example.cvitme01.entity.dto.Account\": \"" + prop + "\"");
                 }
             }
@@ -376,11 +386,11 @@ public interface AccountDraft extends Account, Draft {
                     case "role":
                     		return __roleValue != null;
                     case "avatar":
-                    		return __avatarValue != null;
+                    		return __avatarLoaded;
                     case "registerTime":
                     		return __registerTimeValue != null;
                     case "details":
-                    		return __detailsValue != null;
+                    		return __detailsLoaded;
                     default: throw new IllegalArgumentException("Illegal property name for \"org.example.cvitme01.entity.dto.Account\": \"" + prop + "\"");
                 }
             }
@@ -460,13 +470,13 @@ public interface AccountDraft extends Account, Draft {
                 if (__roleValue != null) {
                     hash = 31 * hash + __roleValue.hashCode();
                 }
-                if (__avatarValue != null) {
+                if (__avatarLoaded && __avatarValue != null) {
                     hash = 31 * hash + __avatarValue.hashCode();
                 }
                 if (__registerTimeValue != null) {
                     hash = 31 * hash + __registerTimeValue.hashCode();
                 }
-                if (__detailsValue != null) {
+                if (__detailsLoaded && __detailsValue != null) {
                     hash = 31 * hash + __detailsValue.hashCode();
                 }
                 return hash;
@@ -489,13 +499,13 @@ public interface AccountDraft extends Account, Draft {
                 if (__roleValue != null) {
                     hash = 31 * hash + System.identityHashCode(__roleValue);
                 }
-                if (__avatarValue != null) {
+                if (__avatarLoaded) {
                     hash = 31 * hash + System.identityHashCode(__avatarValue);
                 }
                 if (__registerTimeValue != null) {
                     hash = 31 * hash + System.identityHashCode(__registerTimeValue);
                 }
-                if (__detailsValue != null) {
+                if (__detailsLoaded) {
                     hash = 31 * hash + System.identityHashCode(__detailsValue);
                 }
                 return hash;
@@ -566,7 +576,7 @@ public interface AccountDraft extends Account, Draft {
                 if (__isVisible(PropId.byIndex(SLOT_AVATAR)) != __other.__isVisible(PropId.byIndex(SLOT_AVATAR))) {
                     return false;
                 }
-                boolean __avatarLoaded = __avatarValue != null;
+                boolean __avatarLoaded = this.__avatarLoaded;
                 if (__avatarLoaded != __other.__isLoaded(PropId.byIndex(SLOT_AVATAR))) {
                     return false;
                 }
@@ -586,7 +596,7 @@ public interface AccountDraft extends Account, Draft {
                 if (__isVisible(PropId.byIndex(SLOT_DETAILS)) != __other.__isVisible(PropId.byIndex(SLOT_DETAILS))) {
                     return false;
                 }
-                boolean __detailsLoaded = __detailsValue != null;
+                boolean __detailsLoaded = this.__detailsLoaded;
                 if (__detailsLoaded != __other.__isLoaded(PropId.byIndex(SLOT_DETAILS))) {
                     return false;
                 }
@@ -654,7 +664,7 @@ public interface AccountDraft extends Account, Draft {
                 if (__isVisible(PropId.byIndex(SLOT_AVATAR)) != __other.__isVisible(PropId.byIndex(SLOT_AVATAR))) {
                     return false;
                 }
-                boolean __avatarLoaded = __avatarValue != null;
+                boolean __avatarLoaded = this.__avatarLoaded;
                 if (__avatarLoaded != __other.__isLoaded(PropId.byIndex(SLOT_AVATAR))) {
                     return false;
                 }
@@ -674,7 +684,7 @@ public interface AccountDraft extends Account, Draft {
                 if (__isVisible(PropId.byIndex(SLOT_DETAILS)) != __other.__isVisible(PropId.byIndex(SLOT_DETAILS))) {
                     return false;
                 }
-                boolean __detailsLoaded = __detailsValue != null;
+                boolean __detailsLoaded = this.__detailsLoaded;
                 if (__detailsLoaded != __other.__isLoaded(PropId.byIndex(SLOT_DETAILS))) {
                     return false;
                 }
@@ -867,6 +877,7 @@ public interface AccountDraft extends Account, Draft {
 
             @Override
             @JsonIgnore
+            @Nullable
             public String avatar() {
                 return (__modified!= null ? __modified : __base).avatar();
             }
@@ -876,13 +887,9 @@ public interface AccountDraft extends Account, Draft {
                 if (__resolved != null) {
                     throw new IllegalStateException("The current draft has been resolved so it cannot be modified");
                 }
-                if (avatar == null) {
-                    throw new IllegalArgumentException(
-                        "'avatar' cannot be null, please specify non-null value or use nullable annotation to decorate this property"
-                    );
-                }
                 Impl __tmpModified = __modified();
                 __tmpModified.__avatarValue = avatar;
+                __tmpModified.__avatarLoaded = true;
                 return this;
             }
 
@@ -909,13 +916,14 @@ public interface AccountDraft extends Account, Draft {
 
             @Override
             @JsonIgnore
+            @Nullable
             public AccountDetailsDraft details() {
                 return __ctx.toDraftObject((__modified!= null ? __modified : __base).details());
             }
 
             @Override
             public AccountDetailsDraft details(boolean autoCreate) {
-                if (autoCreate && (!__isLoaded(PropId.byIndex(SLOT_DETAILS)))) {
+                if (autoCreate && (!__isLoaded(PropId.byIndex(SLOT_DETAILS)) || details() == null)) {
                     setDetails(AccountDetailsDraft.$.produce(null, null));
                 }
                 return __ctx.toDraftObject((__modified!= null ? __modified : __base).details());
@@ -926,26 +934,31 @@ public interface AccountDraft extends Account, Draft {
                 if (__resolved != null) {
                     throw new IllegalStateException("The current draft has been resolved so it cannot be modified");
                 }
-                if (details == null) {
-                    throw new IllegalArgumentException(
-                        "'details' cannot be null, please specify non-null value or use nullable annotation to decorate this property"
-                    );
-                }
                 Impl __tmpModified = __modified();
                 __tmpModified.__detailsValue = details;
+                __tmpModified.__detailsLoaded = true;
                 return this;
             }
 
+            @Nullable
             @JsonIgnore
             @Override
-            public long detailsId() {
-                return details().id();
+            public Long detailsId() {
+                AccountDetails details = details();
+                if (details == null) {
+                    return null;
+                }
+                return details.id();
             }
 
             @OldChain
             @Override
-            public AccountDraft setDetailsId(long detailsId) {
-                details(true).setId(Objects.requireNonNull(detailsId, "\"details\" cannot be null"));
+            public AccountDraft setDetailsId(@Nullable Long detailsId) {
+                if (detailsId == null) {
+                    setDetails(null);
+                    return this;
+                }
+                details(true).setId(detailsId);
                 return this;
             }
 
@@ -1118,11 +1131,13 @@ public interface AccountDraft extends Account, Draft {
                     case SLOT_ROLE:
                     		__modified().__roleValue = null;break;
                     case SLOT_AVATAR:
-                    		__modified().__avatarValue = null;break;
+                    		__modified().__avatarValue = null;
+                    __modified().__avatarLoaded = false;break;
                     case SLOT_REGISTER_TIME:
                     		__modified().__registerTimeValue = null;break;
                     case SLOT_DETAILS:
-                    		__modified().__detailsValue = null;break;
+                    		__modified().__detailsValue = null;
+                    __modified().__detailsLoaded = false;break;
                     default: throw new IllegalArgumentException("Illegal property id for \"org.example.cvitme01.entity.dto.Account\": \"" + prop + "\", it does not exist or its loaded state is not controllable");
                 }
             }
@@ -1145,11 +1160,13 @@ public interface AccountDraft extends Account, Draft {
                     case "role":
                     		__modified().__roleValue = null;break;
                     case "avatar":
-                    		__modified().__avatarValue = null;break;
+                    		__modified().__avatarValue = null;
+                    __modified().__avatarLoaded = false;break;
                     case "registerTime":
                     		__modified().__registerTimeValue = null;break;
                     case "details":
-                    		__modified().__detailsValue = null;break;
+                    		__modified().__detailsValue = null;
+                    __modified().__detailsLoaded = false;break;
                     default: throw new IllegalArgumentException("Illegal property name for \"org.example.cvitme01.entity.dto.Account\": \"" + prop + "\", it does not exist or its loaded state is not controllable");
                 }
             }
@@ -1261,10 +1278,8 @@ public interface AccountDraft extends Account, Draft {
             return this;
         }
 
-        public Builder avatar(@NotNull String avatar) {
-            if (avatar != null) {
-                __draft.setAvatar(avatar);
-            }
+        public Builder avatar(@Nullable String avatar) {
+            __draft.setAvatar(avatar);
             return this;
         }
 
@@ -1275,10 +1290,8 @@ public interface AccountDraft extends Account, Draft {
             return this;
         }
 
-        public Builder details(@NotNull AccountDetails details) {
-            if (details != null) {
-                __draft.setDetails(details);
-            }
+        public Builder details(@Nullable AccountDetails details) {
+            __draft.setDetails(details);
             return this;
         }
 
