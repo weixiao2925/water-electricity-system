@@ -16,6 +16,7 @@ MAX_CONTOUR_AREA = 2000
 MIN_ASPECT_RATIO = 6.5
 MAX_ASPECT_RATIO = 8.5
 
+
 def recognize_digital_display(image):
     """
     识别水表上的数字显示部分
@@ -36,10 +37,10 @@ def recognize_digital_display(image):
 
     # 自适应阈值处理
     thresh_image = cv2.adaptiveThreshold(blurred_image, 255,
-                                        cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
-                                        cv2.THRESH_BINARY_INV,
-                                        ADAPTIVE_THRESH_BLOCK_SIZE,
-                                        ADAPTIVE_THRESH_C)
+                                         cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
+                                         cv2.THRESH_BINARY_INV,
+                                         ADAPTIVE_THRESH_BLOCK_SIZE,
+                                         ADAPTIVE_THRESH_C)
 
     # 形态学闭运算
     kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (MORPH_KERNEL_WIDTH, MORPH_KERNEL_HEIGHT))
@@ -66,7 +67,8 @@ def recognize_digital_display(image):
         # 应用筛选条件
         if MIN_CONTOUR_AREA <= area <= MAX_CONTOUR_AREA:
             if MIN_ASPECT_RATIO <= aspect_ratio <= MAX_ASPECT_RATIO:
-                print(f"轮廓 {i}: 面积={area:.1f}, 位置=({x},{y}), 尺寸=({w}x{h}), 长宽比={aspect_ratio:.2f} --> 符合条件!")
+                print(
+                    f"轮廓 {i}: 面积={area:.1f}, 位置=({x},{y}), 尺寸=({w}x{h}), 长宽比={aspect_ratio:.2f} --> 符合条件!")
                 if not found_target:
                     target_bbox = (x, y, w, h)
                     cv2.rectangle(output_image_debug, (x, y), (x + w, y + h), (0, 255, 0), 3)
@@ -91,12 +93,13 @@ def recognize_digital_display(image):
         if roi_y + roi_h > img_h: roi_h = img_h - roi_y
 
         if roi_w > 0 and roi_h > 0:
-            roi = gray_image[roi_y:roi_y+roi_h, roi_x:roi_x+roi_w]
+            roi = gray_image[roi_y:roi_y + roi_h, roi_x:roi_x + roi_w]
 
             # 预处理ROI
             scale_factor = 3
             if roi.shape[0] > 0 and roi.shape[1] > 0:
-                roi_resized = cv2.resize(roi, (roi_w * scale_factor, roi_h * scale_factor), interpolation=cv2.INTER_CUBIC)
+                roi_resized = cv2.resize(roi, (roi_w * scale_factor, roi_h * scale_factor),
+                                         interpolation=cv2.INTER_CUBIC)
                 _, roi_thresh = cv2.threshold(roi_resized, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
                 roi_processed = roi_thresh
 
@@ -110,9 +113,9 @@ def recognize_digital_display(image):
                     # 在输出图像上绘制结果
                     padding = 3
                     cv2.rectangle(output_image,
-                                (x - padding, y - padding),
-                                (x + w + padding, y + h + padding),
-                                (0, 255, 0), 2)
+                                  (x - padding, y - padding),
+                                  (x + w + padding, y + h + padding),
+                                  (0, 255, 0), 2)
                     cv2.putText(output_image, f"OCR: {ocr_result}", (x, y - 10),
                                 cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
 
@@ -120,6 +123,7 @@ def recognize_digital_display(image):
                     print(f"\nOCR 识别时发生错误: {e}")
 
     return ocr_result, output_image
+
 
 def detect_dial_readings(image):
     """
@@ -217,14 +221,14 @@ def detect_dial_readings(image):
         if best_pointer_contour is None:
             print("  未找到合适的指针轮廓。")
             cv2.circle(output_image, (cx, cy), r, (255, 0, 255), 2)
-            cv2.putText(output_image, "?", (cx - r//2, cy + r//2), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 0, 255), 2)
+            cv2.putText(output_image, "?", (cx - r // 2, cy + r // 2), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 0, 255), 2)
             continue
 
         # 查找指针尖端
         max_dist_sq = 0
         pointer_tip = None
         for point in best_pointer_contour.reshape(-1, 2):
-            dist_sq = (point[0] - roi_center_x)**2 + (point[1] - roi_center_y)**2
+            dist_sq = (point[0] - roi_center_x) ** 2 + (point[1] - roi_center_y) ** 2
             if dist_sq > max_dist_sq:
                 max_dist_sq = dist_sq
                 pointer_tip = tuple(point)
@@ -232,7 +236,7 @@ def detect_dial_readings(image):
         if pointer_tip is None:
             print("  无法确定指针尖端。")
             cv2.circle(output_image, (cx, cy), r, (255, 0, 255), 2)
-            cv2.putText(output_image, "?", (cx - r//2, cy + r//2), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 0, 255), 2)
+            cv2.putText(output_image, "?", (cx - r // 2, cy + r // 2), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 0, 255), 2)
             continue
 
         # 计算角度
@@ -267,9 +271,11 @@ def detect_dial_readings(image):
         end_x = int(cx + line_length * math.sin(math.radians(angle_normalized)))
         end_y = int(cy - line_length * math.cos(math.radians(angle_normalized)))
         cv2.line(output_image, (cx, cy), (end_x, end_y), (255, 0, 0), 2)
-        cv2.putText(output_image, str(reading), (cx + r//3, cy + r//2), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
+        cv2.putText(output_image, str(reading), (cx + r // 3, cy + r // 2), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255),
+                    2)
 
     return readings, output_image
+
 
 def read_water_meter(image_path):
     """
@@ -301,8 +307,8 @@ def read_water_meter(image_path):
 
     # 3. 合并结果到最终图像
     h, w = image.shape[:2]
-    final_image[:h//2, :] = digital_image[:h//2, :]
-    final_image[h//2:, :] = pointer_image[h//2:, :]
+    final_image[:h // 2, :] = digital_image[:h // 2, :]
+    final_image[h // 2:, :] = pointer_image[h // 2:, :]
 
     # 4. 组合最终读数
     final_reading = None
@@ -351,6 +357,7 @@ def read_water_meter(image_path):
                 (10, 90), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2)
 
     return final_reading, final_image, digital_result, decimal_part
+
 
 if __name__ == "__main__":
     image_file = 'img/25.png'  # 请确保路径正确

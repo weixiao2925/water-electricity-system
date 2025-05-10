@@ -1,8 +1,10 @@
 import os
+import cv2
 
 from flask import Flask, request, jsonify
 from werkzeug.utils import secure_filename
 
+from service.electricity_meter_reader import electricity_readings
 from service.multi_dial_reader import run_multi_dial_reader
 from service.water_meter_reader import read_water_meter
 
@@ -50,6 +52,33 @@ def read_water_meter_api():
             "data": {
                 "method": "pointer_multi",
                 "reading": result
+            },
+            "success": True
+        })
+    except Exception as e:
+        return jsonify({"code": 500, "data": f"识别失败: {str(e)}", "success": False})
+
+
+@app.route('/api/read_electricity_meter', methods=['POST'])
+def read_electricity_meter_api():
+    if 'image' not in request.files:
+        return jsonify({"code": 400, "data": "缺少图像文件", "success": False})
+
+    file = request.files['image']
+    filename = secure_filename(file.filename)
+    filepath = os.path.join(UPLOAD_FOLDER, filename)
+    file.save(filepath)
+
+    try:
+        image = cv2.imread(filepath)
+        if image is None:
+            raise ValueError("图像无法加载，可能不是有效的图片文件")
+        final_value = electricity_readings(image)
+        return jsonify({
+            "code": 200,
+            "data": {
+                "method": "electricity_meter",
+                "reading": final_value
             },
             "success": True
         })
