@@ -16,8 +16,8 @@ export function useUploadService() {
         }
       });
     },
-    apiUploadSave: async (data: Reading) => {
-        return await $api.post('/api/home/upload/image/save', data);
+    apiUploadSave: async (type: string,data: Reading) => {
+        return await $api.post(`/api/home/upload/image/save?type=${type}`, data);
     }
   };
 }

@@ -51,10 +51,12 @@ const openDialog = () => {
     dialogVisible.value = true
 }
 const confirmSave = () => {
+
     formRef.value.validate((valid: boolean) => {
         if (valid) {
+            const type:string = selectedMeterType.value === '水表' ? 'water' : selectedMeterType.value === '电表' ? 'electricity' : 'gas'
             uploadService
-                .apiUploadSave(reading)
+                .apiUploadSave(type, reading)
                 .then(_ => {
                     ElMessage.success(`保存成功，位置是：${reading.meter.location}`)
                     formRef.value?.resetFields?.()
