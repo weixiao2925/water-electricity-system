@@ -56,10 +56,10 @@ public class HomeUploadServiceImpl implements HomeUploadService {
         Meter inputMeter = reading.meter();
         if (inputMeter == null || inputMeter.location() == null) return "仪表位置信息不能为空";
         String location = inputMeter.location();
-        String type = inputMeter.type();
 
         MeterTable  meterTable = MeterTable.$;
         Optional<Meter> existingMeterOpt = sqlClient.createQuery(meterTable)
+                        .where(meterTable.type().eq(selectType))
                         .where(meterTable.location().eq(location))
                         .where(meterTable.account().getId().eq(id))
                         .select(meterTable)
@@ -72,10 +72,10 @@ public class HomeUploadServiceImpl implements HomeUploadService {
             log.info("未找到位置为 '{}' 的仪表，为用户 ID {} 创建新仪表", location, id);
             Meter newMeter = MeterDraft.$.produce(draft -> {
                 draft.setLocation(location);
-                draft.setType(type);
+                draft.setType(selectType);
                 draft.applyAccount(acc -> acc.setId(id));
             });
-            var result = sqlClient.getEntities().saveCommand(newMeter).execute();
+            var result = sqlClient.getEntities().saveCommand(newMeter).setMode(SaveMode.INSERT_ONLY).execute();
             Meter saveMeter = result.getModifiedEntity();
             if (result.getTotalAffectedRowCount() <= 0) return "未知错误，请联系管理员";
             meterId = saveMeter.id();
@@ -152,7 +152,7 @@ public class HomeUploadServiceImpl implements HomeUploadService {
 
         if (code == 200) {
             String imageName = UUID.randomUUID().toString().replace("-",  "");
-            imageName = Const.MINIO_WATER + imageName;
+            imageName = Const.MINIO_READING + imageName;
             PutObjectArgs args = PutObjectArgs.builder()
                     .bucket("study")
                     .stream(file.getInputStream(), file.getSize(), -1)

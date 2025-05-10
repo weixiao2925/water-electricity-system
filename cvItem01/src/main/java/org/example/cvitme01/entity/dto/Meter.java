@@ -10,6 +10,7 @@ public interface Meter {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     long id();
 
+    @Key
     String type();
 
     @Key

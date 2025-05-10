@@ -32,7 +32,7 @@ public class Const {
     public static final String LRC_PATH="D:\\item2\\lrc\\";
 
     // Minio相关
-    public static final String MINIO_WATER = "/water/";
+    public static final String MINIO_READING = "/reading/";
 
     // 类型相关
     public static final String WATER = "water";
