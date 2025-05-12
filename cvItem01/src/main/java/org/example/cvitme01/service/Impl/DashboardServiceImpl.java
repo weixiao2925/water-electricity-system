@@ -23,23 +23,26 @@ public class DashboardServiceImpl implements DashboardService {
     private final JSqlClient sqlClient;
 
     @Override
-    public ReadingSumVO[] getSumReading() {
+    public ReadingSumVO[] getSumReading(int id) {
         ReadingTable table = ReadingTable.$;
         ReadingFetcher fetcher = ReadingFetcher.$
                 .value()
                 .cost();
 
         List<Reading> waterReadings = sqlClient.createQuery(table)
+                .where(table.meter().account().id().eq(Long.valueOf(id)))
                 .where(table.meter().type().eq(Const.WATER))
                 .select(table.fetch(fetcher))
                 .execute();
 
         List<Reading> electricityReadings = sqlClient.createQuery(table)
+                .where(table.meter().account().id().eq(Long.valueOf(id)))
                 .where(table.meter().type().eq(Const.ELECTRICITY))
                 .select(table.fetch(fetcher))
                 .execute();
 
         List<Reading> gasReadings = sqlClient.createQuery(table)
+                .where(table.meter().account().id().eq(Long.valueOf(id)))
                 .where(table.meter().type().eq(Const.GAS))
                 .select(table.fetch(fetcher))
                 .execute();
@@ -52,7 +55,7 @@ public class DashboardServiceImpl implements DashboardService {
     }
 
     @Override
-    public List<RecentReading> getRecentReadings() {
+    public List<RecentReading> getRecentReadings(int id) {
         ReadingTable table = ReadingTable.$;
         ReadingFetcher fetcher = ReadingFetcher.$
                 .value()
@@ -64,6 +67,7 @@ public class DashboardServiceImpl implements DashboardService {
                 );
 
         List<Reading> readings = sqlClient.createQuery(table)
+                .where(table.meter().account().id().eq(Long.valueOf(id)))
                 .orderBy(table.shotTime().desc())
                 .select(table.fetch(fetcher))
                 .limit(5)
