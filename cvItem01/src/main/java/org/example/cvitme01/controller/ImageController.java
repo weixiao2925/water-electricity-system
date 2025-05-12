@@ -8,9 +8,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.example.cvitme01.entity.RestBean;
 import org.example.cvitme01.service.ImageService;
 import io.minio.errors.ErrorResponseException;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.example.cvitme01.utils.Const;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
 
 @Slf4j
 @RestController
@@ -25,6 +27,22 @@ public class ImageController {
                            HttpServletResponse response) throws Exception {
         response.setHeader("Content-Type", "image/jpeg");
         this.fetchImage(request, response);
+    }
+
+    @PostMapping("/avatar-upload")
+    public RestBean<String> uploadAvatar(@RequestParam("file")MultipartFile file,
+                                         @RequestAttribute(Const.ATTR_USER_ID) int id) throws IOException {
+//        if (file.getSize() >1024*100)
+//            return  RestBean.failure(400,"头像图片不能大于100kb");
+        log.info("正在进行头像上传操作");
+        String url=imageService.uploadAvatar(file, id);
+        if (url != null) {
+            log.info("头像上传成功，大小：{}", file.getSize());
+            return RestBean.success(url);
+        }else {
+            return RestBean.failure(400,"头像上传失败，请联系管理员");
+        }
+
     }
 
     private void fetchImage(HttpServletRequest request,

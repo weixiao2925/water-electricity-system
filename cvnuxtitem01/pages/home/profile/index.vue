@@ -6,6 +6,8 @@ import type {InfoForm, PasswordForm, UserInfo, ElFormInstance} from "~/types/hom
 
 
 const useStore = useUserStore()
+const { apiBase } = useRuntimeConfig().public
+const event = useRequestEvent()
 const userData: UserInfo = reactive({
     id: -1,
     username: '',
@@ -147,8 +149,20 @@ const uploadAvatar = (event: any) => {
         ElMessage.success('头像更新成功');
     }
 };
-
-
+function beforeAvatarUpload(rawFile: any) {
+    if (rawFile.type !== 'image/jpeg' && rawFile.type !== 'image/png'){
+        ElMessage.error('头像只能是JPG/PNG格式')
+        return false
+    }else if (rawFile.size /1024 >1000){
+        ElMessage.error("头像大小不能大于 1000KB")
+        return false
+    }
+    return true
+}
+function uploadSuccess(responses: any) {
+    ElMessage.success('头像上传成功')
+    useStore.user.avatar = responses.data
+}
 definePageMeta({
   layout: "home"
 });
@@ -167,14 +181,15 @@ onMounted(() => {
           <el-card class="avatar-container" shadow="hover">
               <el-avatar :src="useStore.avatarUrl" :size="70"/>
             <div class="avatar-upload">
-              <label for="avatar-input" class="upload-btn">更换头像</label>
-              <input
-                type="file"
-                id="avatar-input"
-                class="avatar-input"
-                accept="image/*"
-                @change="uploadAvatar"
-              >
+                <el-upload
+                    :action="`${apiBase}/api/image/avatar-upload`"
+                    :show-file-list="false"
+                    :before-upload="beforeAvatarUpload"
+                    :on-success="uploadSuccess"
+                    :headers="accessHeader(event)"
+                >
+                    <el-button size="small" round>修改头像</el-button>
+                </el-upload>
             </div>
           </el-card>
           <el-card class="user-id" shadow="hover">
