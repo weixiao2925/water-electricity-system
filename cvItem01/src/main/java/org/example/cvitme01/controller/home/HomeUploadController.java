@@ -20,7 +20,7 @@ public class HomeUploadController {
 
     @PostMapping("/image")
     public RestBean<Reading> uploadImage(@RequestParam("file") MultipartFile file,
-                                         @RequestParam("type") @Valid @NotNull @Pattern(regexp = "(water|electricity)") String type,
+                                         @RequestParam("type") @Valid @NotNull @Pattern(regexp = "(water|electricity|gas)") String type,
                                          @RequestAttribute(Const.ATTR_USER_ID) int id) throws Exception {
         Reading message = homeUploadService.uploadImage(file, type, id);
         return message != null
@@ -29,7 +29,7 @@ public class HomeUploadController {
     }
 
     @PostMapping("/image/save")
-    public RestBean<String> saveImage(@RequestParam("type") @Valid @NotNull @Pattern(regexp = "(water|electricity)") String type,
+    public RestBean<String> saveImage(@RequestParam("type") @Valid @NotNull @Pattern(regexp = "(water|electricity|gas)") String type,
                                       @RequestBody @Valid Reading reading,
                                       @RequestAttribute(Const.ATTR_USER_ID) int id) throws Exception {
         String message = homeUploadService.saveImage(type, reading, id);
