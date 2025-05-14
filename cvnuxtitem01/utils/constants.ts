@@ -5,9 +5,10 @@
 export const AES_SECRET_KEY:string = 'abcde1234'
 
 // Cookie 相关
-export const COOKIE_PREFIX:string = 'myapp_'
+export const COOKIE_PREFIX:string = 'myapp_' // cookie 前缀
 export const USER_INFO_PREFIX:string = 'user_info_'
 export const USER_TOKEN:string = 'access_token'
+export const USER_REMEMBER:string = 'remember_me:'
 
 // 角色相关
 export enum Role{

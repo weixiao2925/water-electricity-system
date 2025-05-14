@@ -6,6 +6,7 @@ import {useAuthService} from "~/services/auth";
 import {useUserService} from "~/services/user";
 import {useUserStore} from "~/store/user";
 import type {ElFormInstance, LoginForm} from "~/types/welcome/type";
+import {USER_REMEMBER} from "~/utils/constants";
 
 
 const store = useUserStore()
@@ -44,7 +45,7 @@ const userLogin = () =>{
             form.username,
             form.password,
             form.remember_me,
-        ).then((res)=>{
+        ).then((_)=>{
             useUserService()
                 .apiUserInfo()
                     .then((res)=>{
@@ -55,6 +56,11 @@ const userLogin = () =>{
                         //     form.remember_me ? { expireDays: 7 } : {}
                         // )
                         store.setUser(res.data, form.remember_me ? { expireDays: 7 } : {})
+                        setCookie(
+                            USER_REMEMBER,
+                            form.remember_me ? 'true' : 'false',
+                            form.remember_me ? { expireDays: 7 } : {}
+                        )
                     })
         })
 }

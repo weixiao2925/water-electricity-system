@@ -41,7 +41,7 @@ export function removeCookie(key: string, event?: H3Event): void{
 }
 
 export function removeAllCookies(event?: H3Event): void{
-    const keys: string[] = [USER_TOKEN, USER_INFO_PREFIX]
+    const keys: string[] = [USER_TOKEN, USER_INFO_PREFIX, USER_REMEMBER]
     for (const key of keys){
         removeCookie(key, event)
     }
