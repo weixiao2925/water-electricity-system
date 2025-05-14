@@ -160,8 +160,14 @@ function beforeAvatarUpload(rawFile: any) {
     return true
 }
 function uploadSuccess(responses: any) {
+    const remember: boolean = getCookie(USER_REMEMBER) === 'true'
+    useStore.user.avatar = responses.user.avatar;
+    useUserService()
+        .apiUserInfo()
+        .then(res => {
+            useStore.setUser(res.data, remember ? { expireDays: 7 } : {})
+        })
     ElMessage.success('头像上传成功')
-    useStore.user.avatar = responses.data
 }
 definePageMeta({
   layout: "home"
