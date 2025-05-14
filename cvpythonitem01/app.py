@@ -24,7 +24,7 @@ def read_water_meter_api():
     file = request.files['image']
     filename = secure_filename(file.filename)
     filepath = os.path.join(UPLOAD_FOLDER, filename)
-    file.save(filepath)
+    # file.save(filepath)
 
     try:
         # 调用修改后的水表读数识别函数
@@ -67,7 +67,7 @@ def read_electricity_meter_api():
     file = request.files['image']
     filename = secure_filename(file.filename)
     filepath = os.path.join(UPLOAD_FOLDER, filename)
-    file.save(filepath)
+    # file.save(filepath)
 
     try:
         image = cv2.imread(filepath)
