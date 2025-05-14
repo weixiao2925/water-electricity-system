@@ -8,9 +8,6 @@ from service.electricity_meter_reader import electricity_readings
 from service.multi_dial_reader import run_multi_dial_reader
 from service.water_meter_reader import read_water_meter
 
-# 导入封装好的函数
-
-
 app = Flask(__name__)
 UPLOAD_FOLDER = 'uploads'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
