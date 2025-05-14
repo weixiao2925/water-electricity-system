@@ -161,7 +161,7 @@ function beforeAvatarUpload(rawFile: any) {
 }
 function uploadSuccess(responses: any) {
     const remember: boolean = getCookie(USER_REMEMBER) === 'true'
-    useStore.user.avatar = responses.user.avatar;
+    useStore.user.avatar = responses.data;
     useUserService()
         .apiUserInfo()
         .then(res => {
