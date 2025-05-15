@@ -59,7 +59,7 @@ const getStatusClass = (status: string) => {
 
 const fetchData = () => {
     useHomeMeterService()
-        .apiGetMeterList(type.value)
+        .apiGetMeterSelf(type.value)
         .then(res => {
             // console.log(res.data);
             meterData.value = []
