@@ -64,7 +64,7 @@ const fetchData = () => {
             // console.log(res.data);
             meterData.value = []
             Object.assign(meterData.value, res.data);
-            console.log(meterData.value)
+            // console.log(meterData.value)
         })
 }
 
