@@ -10,7 +10,7 @@ import java.math.BigDecimal;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class MeterSelfVO {
+public class MeterHomeVO {
     private Meter meter;
     private BigDecimal lastReading;
     private String unit;
