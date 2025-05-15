@@ -1,6 +1,9 @@
 package org.example.cvitme01.entity.dto;
 
 import org.babyfish.jimmer.sql.*;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.Date;
 
 @Entity
 @Table(name = "meter")
@@ -15,6 +18,10 @@ public interface Meter {
 
     @Key
     String location();
+
+    @Key
+    @Nullable
+    Date installDate();
 
     @JoinColumn(name = "user_id")
     @ManyToOne
