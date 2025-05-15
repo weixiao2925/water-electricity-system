@@ -114,8 +114,11 @@ const getStatusTagType = (status: string) => {
 const getMeterColor = (type: string) => {
     switch (type) {
         case '水表': return '#2196F3';
+        case 'water': return '#2196F3';
         case '电表': return '#FF9800';
+        case 'electric': return '#FF9800';
         case '气表': return '#4CAF50';
+        case 'gas': return '#4CAF50';
         default: return '#909399';
     }
 };
@@ -144,7 +147,7 @@ definePageMeta({
                     <div class="meter-header-content">
                         <div>
                             <h2>{{ meterReading.meter.type }} - {{ meterReading.meter.location }}</h2>
-<!--                            <p>序列号: {{ meter.serialNumber }}</p>-->
+                            <!--                            <p>序列号: {{ meter.serialNumber }}</p>-->
                         </div>
                         <el-tag :type="getStatusTagType(meterReading.status)" size="large">
                             {{ meterReading.status }}
@@ -160,10 +163,10 @@ definePageMeta({
                         </div>
                     </template>
                     <el-descriptions :column="3" border>
-<!--                        <el-descriptions-item label="表计型号">{{ meter.model }}</el-descriptions-item>-->
-<!--                        <el-descriptions-item label="制造商">{{ meter.manufacturer }}</el-descriptions-item>-->
+                        <!--                        <el-descriptions-item label="表计型号">{{ meter.model }}</el-descriptions-item>-->
+                        <!--                        <el-descriptions-item label="制造商">{{ meter.manufacturer }}</el-descriptions-item>-->
                         <el-descriptions-item label="安装日期">{{ meterReading.meter.installDate }}</el-descriptions-item>
-<!--                        <el-descriptions-item label="最近检修">{{ meter.lastMaintenance }}</el-descriptions-item>-->
+                        <!--                        <el-descriptions-item label="最近检修">{{ meter.lastMaintenance }}</el-descriptions-item>-->
                         <el-descriptions-item label="最近读数">{{ meterReading.lastReading }} {{ meterReading.unit }}</el-descriptions-item>
                         <el-descriptions-item label="位置">{{ meterReading.meter.location }}</el-descriptions-item>
                     </el-descriptions>
