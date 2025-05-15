@@ -4,6 +4,7 @@ import org.babyfish.jimmer.sql.*;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Date;
+import java.util.List;
 
 @Entity
 @Table(name = "meter")
@@ -27,4 +28,7 @@ public interface Meter {
     @ManyToOne
     @Key
     Account account();
+
+    @OneToMany(mappedBy = "meter")
+    List<Reading> readings();
 }
