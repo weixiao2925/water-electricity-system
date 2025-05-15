@@ -1,5 +1,7 @@
 <script setup lang="ts">
 // 模拟账单数据
+import {ArrowLeft, Download} from "@element-plus/icons-vue";
+
 const bills = ref([
     {
         id: 1,
@@ -100,12 +102,12 @@ const downloadPDF = (billId: number) => {
     const bill = bills.value.find(b => b.id === billId);
 
     if (!bill) {
-        alert('账单不存在');
+        ElMessage.error('账单不存在');
         return;
     }
 
     // 实际开发中应该调用后端API生成并下载PDF
-    alert(`正在下载 ${bill.month} 的账单PDF`);
+    ElMessage.success(`正在下载 ${bill.month} 的账单PDF`);
 };
 
 // 获取月份名称
@@ -128,103 +130,134 @@ definePageMeta({
 <template>
     <NuxtLayout>
         <div class="bills-page">
-            <h1 class="bills-title">账单中心</h1>
+            <el-page-header :icon="ArrowLeft" title="账单中心">
+                <template #content>
+                    <div class="flex items-center">
+                        <el-icon class="mr-2"><ElIconDocument /></el-icon>
+                        <span class="text-large font-bold">账单中心</span>
+                    </div>
+                </template>
+            </el-page-header>
 
             <!-- 筛选工具栏 -->
-            <div class="filter-toolbar">
-                <div class="filter-group">
-                    <label>年份:</label>
-                    <select v-model="filterOptions.year">
-                        <option v-for="year in yearOptions" :key="year" :value="year">{{ year }}年</option>
-                    </select>
-                </div>
-
-                <div class="filter-group">
-                    <label>状态:</label>
-                    <select v-model="filterOptions.status">
-                        <option v-for="status in statusOptions" :key="status" :value="status">{{ status }}</option>
-                    </select>
-                </div>
-            </div>
+            <el-card class="filter-card" shadow="hover">
+                <el-row :gutter="20">
+                    <el-col :span="12" :xs="24">
+                        <div class="filter-item">
+                            <span class="filter-label">年份:</span>
+                            <el-select v-model="filterOptions.year" placeholder="选择年份" class="filter-select">
+                                <el-option v-for="year in yearOptions" :key="year" :label="`${year}年`" :value="year" />
+                            </el-select>
+                        </div>
+                    </el-col>
+                    <el-col :span="12" :xs="24">
+                        <div class="filter-item">
+                            <span class="filter-label">状态:</span>
+                            <el-select v-model="filterOptions.status" placeholder="选择状态" class="filter-select">
+                                <el-option v-for="status in statusOptions" :key="status" :label="status" :value="status" />
+                            </el-select>
+                        </div>
+                    </el-col>
+                </el-row>
+            </el-card>
 
             <!-- 账单卡片列表 -->
             <div class="bills-list">
-                <div v-for="bill in filteredBills" :key="bill.id" class="bill-card">
-                    <div class="bill-header">
-                        <div class="bill-month">{{ getFormattedDate(bill.month) }}账单</div>
-                        <div class="bill-status" :class="{'paid': bill.isPaid, 'unpaid': !bill.isPaid}">
-                            {{ bill.status }} {{ bill.isPaid ? '（已支付）' : '（未支付）' }}
-                        </div>
-                    </div>
+                <el-empty v-if="filteredBills.length === 0" description="没有符合条件的账单记录" />
 
-                    <div class="bill-content">
-                        <div class="bill-details">
-                            <div class="bill-detail-item">
-                                <span class="detail-label">水表读数:</span>
-                                <span class="detail-value">{{ bill.water.reading }} m³</span>
-                                <span class="detail-change" :class="{'positive': bill.water.usage > 0, 'negative': bill.water.usage < 0}">
-                                {{ bill.water.usage > 0 ? '+' : '' }}{{ bill.water.usage }} m³
-                              </span>
-                            </div>
-
-                            <div class="bill-detail-item">
-                                <span class="detail-label">电表读数:</span>
-                                <span class="detail-value">{{ bill.electricity.reading }} kWh</span>
-                                <span class="detail-change" :class="{'positive': bill.electricity.usage > 0, 'negative': bill.electricity.usage < 0}">
-                                {{ bill.electricity.usage > 0 ? '+' : '' }}{{ bill.electricity.usage }} kWh
-                              </span>
-                            </div>
-
-                            <div class="bill-detail-item">
-                                <span class="detail-label">气表读数:</span>
-                                <span class="detail-value">{{ bill.gas.reading }} m³</span>
-                                <span class="detail-change" :class="{'positive': bill.gas.usage > 0, 'negative': bill.gas.usage < 0}">
-                {{ bill.gas.usage > 0 ? '+' : '' }}{{ bill.gas.usage }} m³
-              </span>
-                            </div>
-
-                            <div class="bill-detail-item total-cost">
-                                <span class="detail-label">总费用:</span>
-                                <span class="detail-value">¥{{ bill.totalCost.toFixed(2) }}</span>
+                <el-card v-for="bill in filteredBills" :key="bill.id" class="bill-card" shadow="hover">
+                    <template #header>
+                        <div class="bill-header">
+                            <div class="bill-month">{{ getFormattedDate(bill.month) }}账单</div>
+                            <div>
+                                <el-tag :type="bill.isPaid ? 'success' : 'danger'" effect="plain">
+                                    {{ bill.status }}
+                                </el-tag>
+                                <el-tag :type="bill.isPaid ? 'success' : 'warning'" class="ml-2">
+                                    {{ bill.isPaid ? '已支付' : '未支付' }}
+                                </el-tag>
                             </div>
                         </div>
+                    </template>
 
-                        <div class="bill-breakdown">
-                            <div class="breakdown-item">
-                                <div class="breakdown-title">水费</div>
-                                <div class="breakdown-value">¥{{ bill.water.cost.toFixed(2) }}</div>
-                            </div>
+                    <el-row :gutter="20">
+                        <el-col :lg="16" :md="24">
+                            <div class="bill-details">
+                                <el-descriptions :column="1" border>
+                                    <el-descriptions-item label="水表读数">
+                                        <span>{{ bill.water.reading }} m³</span>
+                                        <el-tag :type="bill.water.usage > 0 ? 'warning' : 'success'" size="small" class="ml-2">
+                                            {{ bill.water.usage > 0 ? '+' : '' }}{{ bill.water.usage }} m³
+                                        </el-tag>
+                                    </el-descriptions-item>
 
-                            <div class="breakdown-item">
-                                <div class="breakdown-title">电费</div>
-                                <div class="breakdown-value">¥{{ bill.electricity.cost.toFixed(2) }}</div>
-                            </div>
+                                    <el-descriptions-item label="电表读数">
+                                        <span>{{ bill.electricity.reading }} kWh</span>
+                                        <el-tag :type="bill.electricity.usage > 0 ? 'warning' : 'success'" size="small" class="ml-2">
+                                            {{ bill.electricity.usage > 0 ? '+' : '' }}{{ bill.electricity.usage }} kWh
+                                        </el-tag>
+                                    </el-descriptions-item>
 
-                            <div class="breakdown-item">
-                                <div class="breakdown-title">气费</div>
-                                <div class="breakdown-value">¥{{ bill.gas.cost.toFixed(2) }}</div>
+                                    <el-descriptions-item label="气表读数">
+                                        <span>{{ bill.gas.reading }} m³</span>
+                                        <el-tag :type="bill.gas.usage > 0 ? 'warning' : 'success'" size="small" class="ml-2">
+                                            {{ bill.gas.usage > 0 ? '+' : '' }}{{ bill.gas.usage }} m³
+                                        </el-tag>
+                                    </el-descriptions-item>
+                                </el-descriptions>
+
+                                <div class="total-cost">
+                                    <span class="cost-label">总费用:</span>
+                                    <span class="cost-value">¥{{ bill.totalCost.toFixed(2) }}</span>
+                                </div>
                             </div>
-                        </div>
-                    </div>
+                        </el-col>
+
+                        <el-col :lg="8" :md="24">
+                            <el-divider direction="vertical" class="hidden-md-and-down" />
+                            <el-divider class="hidden-lg-and-up" />
+
+                            <div class="bill-breakdown">
+                                <el-card shadow="never" class="fee-card">
+                                    <template #header>
+                                        <div class="fee-header">水费</div>
+                                    </template>
+                                    <div class="fee-amount">¥{{ bill.water.cost.toFixed(2) }}</div>
+                                </el-card>
+
+                                <el-card shadow="never" class="fee-card">
+                                    <template #header>
+                                        <div class="fee-header">电费</div>
+                                    </template>
+                                    <div class="fee-amount">¥{{ bill.electricity.cost.toFixed(2) }}</div>
+                                </el-card>
+
+                                <el-card shadow="never" class="fee-card">
+                                    <template #header>
+                                        <div class="fee-header">气费</div>
+                                    </template>
+                                    <div class="fee-amount">¥{{ bill.gas.cost.toFixed(2) }}</div>
+                                </el-card>
+                            </div>
+                        </el-col>
+                    </el-row>
+
+                    <el-divider />
 
                     <div class="bill-footer">
                         <div class="bill-date">
-                            {{ bill.isPaid ? `支付日期: ${bill.paidDate}` : '未支付' }}
+                            <el-tag type="info" effect="plain">
+                                {{ bill.isPaid ? `支付日期: ${bill.paidDate}` : '未支付' }}
+                            </el-tag>
                         </div>
-
-                        <button @click="downloadPDF(bill.id)" class="download-btn">
+                        <el-button type="primary" @click="downloadPDF(bill.id)" :icon="Download">
                             下载PDF账单
-                        </button>
+                        </el-button>
                     </div>
-                </div>
-
-                <div v-if="filteredBills.length === 0" class="no-bills">
-                    没有符合条件的账单记录
-                </div>
+                </el-card>
             </div>
         </div>
     </NuxtLayout>
-
 </template>
 
 <style scoped>
@@ -232,232 +265,125 @@ definePageMeta({
     max-width: 1200px;
     margin: 0 auto;
     padding: 20px;
-    font-family: Arial, sans-serif;
 }
 
-.bills-title {
-    color: #333;
-    margin-bottom: 30px;
-    text-align: center;
+.filter-card {
+    margin: 20px 0;
 }
 
-/* 筛选工具栏样式 */
-.filter-toolbar {
-    display: flex;
-    gap: 20px;
-    margin-bottom: 30px;
-    background-color: white;
-    padding: 15px;
-    border-radius: 10px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.filter-group {
+.filter-item {
     display: flex;
     align-items: center;
-    gap: 10px;
+    margin: 10px 0;
 }
 
-.filter-group label {
+.filter-label {
+    margin-right: 10px;
     font-weight: bold;
-    color: #555;
+    color: var(--el-text-color-regular);
+    width: 60px;
 }
 
-.filter-group select {
-    padding: 8px 12px;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    background-color: #f9f9f9;
-    cursor: pointer;
+.filter-select {
+    width: 150px;
 }
 
-/* 账单卡片样式 */
 .bills-list {
+    margin-top: 20px;
     display: flex;
     flex-direction: column;
     gap: 20px;
 }
 
 .bill-card {
-    background-color: white;
-    border-radius: 10px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    overflow: hidden;
+    margin-bottom: 0;
 }
 
 .bill-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 15px 20px;
-    background-color: #f5f5f5;
-    border-bottom: 1px solid #eee;
 }
 
 .bill-month {
     font-size: 18px;
     font-weight: bold;
-    color: #333;
-}
-
-.bill-status {
-    font-size: 14px;
-    padding: 4px 10px;
-    border-radius: 15px;
-    background-color: #e0e0e0;
-}
-
-.bill-status.paid {
-    background-color: #e8f5e9;
-    color: #388e3c;
-}
-
-.bill-status.unpaid {
-    background-color: #ffebee;
-    color: #d32f2f;
-}
-
-.bill-content {
-    padding: 20px;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 20px;
-    border-bottom: 1px solid #eee;
 }
 
 .bill-details {
-    flex: 2;
-    min-width: 300px;
-}
-
-.bill-detail-item {
-    margin-bottom: 12px;
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-}
-
-.detail-label {
-    width: 100px;
-    font-weight: bold;
-    color: #555;
-}
-
-.detail-value {
-    margin-right: 10px;
-    font-size: 16px;
-}
-
-.detail-change {
-    font-size: 14px;
-}
-
-.detail-change.positive {
-    color: #4CAF50;
-}
-
-.detail-change.negative {
-    color: #F44336;
+    margin-bottom: 20px;
 }
 
 .total-cost {
-    margin-top: 15px;
-    padding-top: 15px;
-    border-top: 1px dashed #ddd;
+    margin-top: 20px;
+    padding: 12px;
+    background-color: var(--el-color-primary-light-9);
+    border-radius: 4px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
-.total-cost .detail-value {
+.cost-label {
+    font-weight: bold;
+    color: var(--el-text-color-regular);
+}
+
+.cost-value {
     font-size: 20px;
     font-weight: bold;
-    color: #d32f2f;
+    color: var(--el-color-danger);
 }
 
 .bill-breakdown {
-    flex: 1;
-    min-width: 200px;
     display: flex;
     flex-direction: column;
     gap: 10px;
-    padding-left: 20px;
-    border-left: 1px solid #eee;
 }
 
-.breakdown-item {
-    padding: 10px;
-    background-color: #f9f9f9;
-    border-radius: 5px;
+.fee-card {
+    margin-bottom: 10px;
+    border: 1px solid var(--el-border-color-light);
 }
 
-.breakdown-title {
+.fee-header {
     font-size: 14px;
-    color: #666;
-    margin-bottom: 5px;
+    color: var(--el-text-color-regular);
 }
 
-.breakdown-value {
+.fee-amount {
     font-size: 16px;
     font-weight: bold;
-    color: #333;
+    color: var(--el-text-color-primary);
+    text-align: center;
 }
 
 .bill-footer {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 15px 20px;
 }
 
-.bill-date {
-    font-size: 14px;
-    color: #666;
-}
-
-.download-btn {
-    background-color: #1976D2;
-    color: white;
-    border: none;
-    padding: 8px 15px;
-    border-radius: 5px;
-    cursor: pointer;
-    font-weight: bold;
-    transition: background-color 0.3s;
-}
-
-.download-btn:hover {
-    background-color: #1565C0;
-}
-
-.no-bills {
-    text-align: center;
-    padding: 40px;
-    background-color: white;
-    border-radius: 10px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    color: #666;
-}
-
-/* 响应式调整 */
 @media (max-width: 768px) {
-    .bill-content {
-        flex-direction: column;
-    }
-
-    .bill-breakdown {
-        border-left: none;
-        border-top: 1px solid #eee;
-        padding-left: 0;
-        padding-top: 15px;
-    }
-
     .bill-footer {
         flex-direction: column;
-        gap: 10px;
         align-items: flex-start;
+        gap: 15px;
+    }
+}
+
+/* 用于处理Element Plus响应式布局 */
+.hidden-lg-and-up {
+    display: none;
+}
+
+@media (max-width: 992px) {
+    .hidden-lg-and-up {
+        display: block;
     }
 
-    .filter-toolbar {
-        flex-direction: column;
-        gap: 10px;
+    .hidden-md-and-down {
+        display: none !important;
     }
 }
 </style>
