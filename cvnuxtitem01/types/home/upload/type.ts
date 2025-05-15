@@ -1,10 +1,10 @@
 export interface UploadParams {
     file: File;
-    type: 'water' | 'electricity';
+    type: 'water' | 'electricity' | 'gas';
 }
 
 export interface Meter {
-    type: 'water' | 'electricity';
+    type: 'water' | 'electricity' | 'gas';
     location: string | null;
 }
 
