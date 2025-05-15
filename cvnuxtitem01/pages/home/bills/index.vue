@@ -3,47 +3,47 @@
 const bills = ref([
     {
         id: 1,
-        month: '2023-05',
+        month: '2025-05',
         water: { reading: 123.5, cost: 78.4, lastReading: 118.3, usage: 5.2 },
         electricity: { reading: 568.7, cost: 195.6, lastReading: 552.9, usage: 15.8 },
         gas: { reading: 89.2, cost: 167.3, lastReading: 91.3, usage: -2.1 },
         totalCost: 441.3,
         status: '已出账',
         isPaid: true,
-        paidDate: '2023-05-15'
+        paidDate: '2025-05-15'
     },
     {
         id: 2,
-        month: '2023-04',
+        month: '2025-04',
         water: { reading: 118.3, cost: 73.2, lastReading: 114.1, usage: 4.2 },
         electricity: { reading: 552.9, cost: 190.1, lastReading: 538.4, usage: 14.5 },
         gas: { reading: 91.3, cost: 172.5, lastReading: 87.6, usage: 3.7 },
         totalCost: 435.8,
         status: '已出账',
         isPaid: true,
-        paidDate: '2023-04-15'
+        paidDate: '2025-04-15'
     },
     {
         id: 3,
-        month: '2023-03',
+        month: '2025-03',
         water: { reading: 114.1, cost: 71.8, lastReading: 110.5, usage: 3.6 },
         electricity: { reading: 538.4, cost: 185.3, lastReading: 525.2, usage: 13.2 },
         gas: { reading: 87.6, cost: 164.9, lastReading: 84.2, usage: 3.4 },
         totalCost: 422.0,
         status: '已出账',
         isPaid: true,
-        paidDate: '2023-03-15'
+        paidDate: '2025-03-15'
     },
     {
         id: 4,
-        month: '2023-02',
+        month: '2025-02',
         water: { reading: 110.5, cost: 69.5, lastReading: 107.2, usage: 3.3 },
         electricity: { reading: 525.2, cost: 180.9, lastReading: 512.5, usage: 12.7 },
         gas: { reading: 84.2, cost: 158.3, lastReading: 81.0, usage: 3.2 },
         totalCost: 408.7,
         status: '已出账',
         isPaid: true,
-        paidDate: '2023-02-15'
+        paidDate: '2025-02-15'
     },
     {
         id: 5,
@@ -65,7 +65,7 @@ const filterOptions = ref({
 });
 
 // 年份选项
-const yearOptions = [2023, 2022, 2021];
+const yearOptions = [2025, 2022, 2021];
 // 状态选项
 const statusOptions = ['全部', '已出账', '未出账', '已支付', '未支付'];
 
@@ -163,16 +163,16 @@ definePageMeta({
                                 <span class="detail-label">水表读数:</span>
                                 <span class="detail-value">{{ bill.water.reading }} m³</span>
                                 <span class="detail-change" :class="{'positive': bill.water.usage > 0, 'negative': bill.water.usage < 0}">
-                {{ bill.water.usage > 0 ? '+' : '' }}{{ bill.water.usage }} m³
-              </span>
+                                {{ bill.water.usage > 0 ? '+' : '' }}{{ bill.water.usage }} m³
+                              </span>
                             </div>
 
                             <div class="bill-detail-item">
                                 <span class="detail-label">电表读数:</span>
                                 <span class="detail-value">{{ bill.electricity.reading }} kWh</span>
                                 <span class="detail-change" :class="{'positive': bill.electricity.usage > 0, 'negative': bill.electricity.usage < 0}">
-                {{ bill.electricity.usage > 0 ? '+' : '' }}{{ bill.electricity.usage }} kWh
-              </span>
+                                {{ bill.electricity.usage > 0 ? '+' : '' }}{{ bill.electricity.usage }} kWh
+                              </span>
                             </div>
 
                             <div class="bill-detail-item">
