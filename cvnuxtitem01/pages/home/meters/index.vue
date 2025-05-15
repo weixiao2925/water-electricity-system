@@ -1,64 +1,72 @@
 <script setup lang="ts">
-// 模拟表计数据
-const meters = ref([
+
+import {useHomeMeterService} from "~/services/home/meter";
+import type {MeterSelf} from "~/types/home/meters/type";
+
+const meterData = ref<MeterSelf[]>([])
+const type = ref<"water" | "electricity" | "gas" | "">("")
+const status = ref<"全部" | "正常" | "需要检查" | "故障">("全部")
+const typeOptions = [
     {
-        id: 1,
-        type: '水表',
-        location: '厨房',
-        model: 'WM-100A',
-        installDate: '2022-01-15',
-        lastReading: 123.5,
-        unit: 'm³',
-        status: '正常'
-    },
-    {
-        id: 2,
-        type: '电表',
-        location: '配电室',
-        model: 'EM-200B',
-        installDate: '2021-11-20',
-        lastReading: 568.7,
-        unit: 'kWh',
-        status: '正常'
-    },
-    {
-        id: 3,
-        type: '气表',
-        location: '厨房',
-        model: 'GM-150C',
-        installDate: '2022-03-05',
-        lastReading: 89.2,
-        unit: 'm³',
-        status: '正常'
-    },
-    {
-        id: 4,
-        type: '水表',
-        location: '卫生间',
-        model: 'WM-100A',
-        installDate: '2022-02-10',
-        lastReading: 78.3,
-        unit: 'm³',
-        status: '需要检查'
+        label: '全部',
+        value: '',
+    }, {
+        label: '水表',
+        value: 'water'
+    }, {
+        label: '电表',
+        value: 'electricity'
+    }, {
+        label: '气表',
+        value: 'gas'
     }
-]);
+]
+const statusOption = [
+    {
+        label: '全部',
+        value: ''
+    }, {
+        label: '正常',
+        value: 'normal'
+    }, {
+        label: '需要检查',
+        value: 'warning'
+    }, {
+        label: '故障',
+        value: 'error'
+    }
+]
 
-// 筛选条件
-const typeFilter = ref('全部');
-const statusFilter = ref('全部');
+const getTypeLabel = (type: string) => {
+    const typeMap: Record<string, string> = {
+        'water': '水表',
+        'electricity': '电表',
+        'gas': '气表'
+    };
+    return typeMap[type] || type;
+};
 
-// 表计类型选项
-const typeOptions = ['全部', '水表', '电表', '气表'];
-const statusOptions = ['全部', '正常', '需要检查', '故障'];
+const getTypeClass = (type: string) => {
+    return type;
+};
 
-// 筛选后的表计列表
-const filteredMeters = computed(() => {
-    return meters.value.filter(meter => {
-        const typeMatch = typeFilter.value === '全部' || meter.type === typeFilter.value;
-        const statusMatch = statusFilter.value === '全部' || meter.status === statusFilter.value;
-        return typeMatch && statusMatch;
-    });
-});
+const getStatusClass = (status: string) => {
+    if (status === '正常') return 'normal';
+    if (status === '需要检查') return 'warning';
+    if (status === '故障') return 'error';
+    return '';
+};
+
+const fetchData = () => {
+    useHomeMeterService()
+        .apiGetMeterList(type.value)
+        .then(res => {
+            // console.log(res.data);
+            meterData.value = []
+            Object.assign(meterData.value, res.data);
+            console.log(meterData.value)
+        })
+}
 
 // 查看详情
 const router = useRouter();
@@ -69,6 +77,9 @@ const viewMeterDetail = (meterId: number) => {
 definePageMeta({
     layout: "home"
 })
+onMounted(()=>{
+    fetchData()
+})
 </script>
 
 <template>
@@ -76,35 +87,39 @@ definePageMeta({
         <div class="meters-page">
             <h1 class="page-title">我的表计</h1>
 
-            <!-- 筛选区域 -->
             <div class="filters">
-                <div class="filter-group">
-                    <label>表计类型:</label>
-                    <select v-model="typeFilter">
-                        <option v-for="option in typeOptions" :key="option" :value="option">{{ option }}</option>
-                    </select>
-                </div>
-
-                <div class="filter-group">
-                    <label>状态:</label>
-                    <select v-model="statusFilter">
-                        <option v-for="option in statusOptions" :key="option" :value="option">{{ option }}</option>
-                    </select>
-                </div>
+                <div class="label-option">表计类型:</div>
+                <el-select v-model="type"  placeholder="请选择表计类型" clearable style="width: 150px;" @change="fetchData">
+                    <el-option
+                        v-for="option in typeOptions"
+                        :key="option.label"
+                        :label="option.label"
+                        :value="option.value"
+                    />
+                </el-select>
+                <div class="label-option">状态:</div>
+                <el-select v-model="status" placeholder="请选择状态" clearable style="width: 150px;" @change="fetchData">
+                    <el-option
+                        v-for="option in statusOption"
+                        :key = "option.label"
+                        :label = "option.label"
+                        :value = "option.value"
+                    />
+                </el-select>
             </div>
 
             <!-- 表计列表 -->
             <div class="meters-list">
-                <div v-for="meter in filteredMeters" :key="meter.id" class="meter-card" @click="viewMeterDetail(meter.id)">
-                    <div class="meter-type" :class="meter.type.toLowerCase()">{{ meter.type }}</div>
+                <div v-for="meter in meterData" :key="meter.meter.id" class="meter-card" @click="viewMeterDetail(meter.meter.id)">
+                    <!-- 修改这里，确保正确显示类型并应用CSS类 -->
+                    <div class="meter-type" :class="getTypeClass(meter.meter.type)">{{ getTypeLabel(meter.meter.type) }}</div>
                     <div class="meter-details">
-                        <h3>{{ meter.location }}</h3>
+                        <h3>{{ meter.meter.location }}</h3>
                         <div class="meter-info">
-                            <p><span>型号:</span> {{ meter.model }}</p>
-                            <p><span>安装日期:</span> {{ meter.installDate }}</p>
+                            <p><span>安装日期:</span> {{ meter.meter.installDate }}</p>
                             <p><span>最近读数:</span> {{ meter.lastReading }} {{ meter.unit }}</p>
                         </div>
-                        <div class="meter-status" :class="meter.status === '正常' ? 'normal' : meter.status === '需要检查' ? 'warning' : 'error'">
+                        <div class="meter-status" :class="getStatusClass(meter.status)">
                             {{ meter.status }}
                         </div>
                     </div>
@@ -114,12 +129,9 @@ definePageMeta({
                     </div>
                 </div>
             </div>
-            <div>
-                <!--            <NuxtPage/>-->
-            </div>
 
             <!-- 如果没有表计数据，显示空状态 -->
-            <div v-if="filteredMeters.length === 0" class="no-data">
+            <div v-if="meterData.length === 0" class="no-data">
                 没有找到符合条件的表计
             </div>
         </div>
@@ -128,6 +140,13 @@ definePageMeta({
 </template>
 
 <style scoped>
+.label-option {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 16px;
+}
+
 .meters-page {
     max-width: 1200px;
     margin: 0 auto;
@@ -197,15 +216,15 @@ definePageMeta({
     font-weight: bold;
 }
 
-.meter-type.水表 {
+.meter-type.water {
     background-color: #2196F3;
 }
 
-.meter-type.电表 {
+.meter-type.electricity {
     background-color: #FF9800;
 }
 
-.meter-type.气表 {
+.meter-type.gas {
     background-color: #4CAF50;
 }
 
