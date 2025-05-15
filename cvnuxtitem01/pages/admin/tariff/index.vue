@@ -29,7 +29,7 @@ const nowVersionDetails = ref<Version>();
 const nowVersion = computed<string>(() => {
     return nowVersionDetails.value?.version || '';
 });
-const selectedTariffType = ref<TARIFF_TYPES>(TARIFF_TYPES.Electricity); // 当前选择的价格类型
+const selectedTariffType = ref<TARIFF_TYPES>(TARIFF_TYPES.Water); // 当前选择的价格类型
 const newVersionForm = ref<TariffVersion>({
     id: -1,
     type: selectedTariffType.value,
@@ -450,8 +450,8 @@ onBeforeRouteLeave((_to, _from, next) => {
             <el-card class="tariff-type-selector" shadow="hover">
                 <div class="type-selector">
                     <el-radio-group v-model="selectedTariffType" size="large">
-                        <el-radio-button :label="TARIFF_TYPES.Electricity" @click.native.prevent="handleTypeChange(TARIFF_TYPES.Electricity)">电价设置</el-radio-button>
                         <el-radio-button :label="TARIFF_TYPES.Water" @click.native.prevent="handleTypeChange(TARIFF_TYPES.Water)">水价设置</el-radio-button>
+                        <el-radio-button :label="TARIFF_TYPES.Electricity" @click.native.prevent="handleTypeChange(TARIFF_TYPES.Electricity)">电价设置</el-radio-button>
                     </el-radio-group>
                 </div>
             </el-card>
