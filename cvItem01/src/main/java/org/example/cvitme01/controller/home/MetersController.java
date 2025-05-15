@@ -16,7 +16,7 @@ public class MetersController {
 
      private final HomeMeterService homeMeterService;
 
-     @GetMapping("/meter-list")
+     @GetMapping("/meter-self")
      public RestBean<List<MeterSelfVO>> getMeterSelf(@RequestAttribute(Const.ATTR_USER_ID) int id,
                                                      @RequestParam("type") String type) {
          List<MeterSelfVO> meterSelf = homeMeterService.getMeterSelf(id, type);

@@ -4,7 +4,7 @@ export function useHomeMeterService() {
 
     return {
         apiGetMeterList: async (type: "water" | "electricity" | "gas" | "") => {
-            return await $api.get(`/api/home/meters/meter-list?type=${type}`);
+            return await $api.get(`/api/home/meters/meter-self?type=${type}`);
         },
     };
 }
