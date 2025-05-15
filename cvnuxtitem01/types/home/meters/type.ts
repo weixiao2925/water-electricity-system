@@ -1,9 +1,16 @@
+export interface Reading {
+    id: number;
+    shotTime: string;
+    value: number;
+    cost: number;
+}
+
 export interface Meter {
     id: number;
     type: 'water' | 'electricity' | 'gas';
     location: string;
     installDate: string | null;
-    reading: Reading;
+    readings: Reading[];
 }
 
 export interface MeterHome {
@@ -13,9 +20,4 @@ export interface MeterHome {
     status: string;
 }
 
-export interface Reading {
-    id: number;
-    shotTime: string;
-    value: number;
-    cost: number;
-}
+
