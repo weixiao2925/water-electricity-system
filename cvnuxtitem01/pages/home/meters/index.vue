@@ -1,9 +1,9 @@
 <script setup lang="ts">
 
 import {useHomeMeterService} from "~/services/home/meter";
-import type {MeterSelf} from "~/types/home/meters/type";
+import type {MeterHome} from "~/types/home/meters/type";
 
-const meterData = ref<MeterSelf[]>([])
+const meterData = ref<MeterHome[]>([])
 const type = ref<"water" | "electricity" | "gas" | "">("")
 const status = ref<"全部" | "正常" | "需要检查" | "故障">("全部")
 const typeOptions = [
