@@ -8,6 +8,8 @@ public interface Tables {
 
     AccountDetailsTable ACCOUNT_DETAILS_TABLE = AccountDetailsTable.$;
 
+    LogsTable LOGS_TABLE = LogsTable.$;
+
     MeterTable METER_TABLE = MeterTable.$;
 
     ReadingTable READING_TABLE = ReadingTable.$;

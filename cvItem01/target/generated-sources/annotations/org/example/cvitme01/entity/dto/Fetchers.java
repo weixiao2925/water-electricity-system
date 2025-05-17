@@ -8,6 +8,8 @@ public interface Fetchers {
 
     AccountDetailsFetcher ACCOUNT_DETAILS_FETCHER = AccountDetailsFetcher.$;
 
+    LogsFetcher LOGS_FETCHER = LogsFetcher.$;
+
     MeterFetcher METER_FETCHER = MeterFetcher.$;
 
     ReadingFetcher READING_FETCHER = ReadingFetcher.$;

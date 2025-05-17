@@ -8,6 +8,8 @@ public interface TableExes {
 
     AccountDetailsTableEx ACCOUNT_DETAILS_TABLE_EX = AccountDetailsTableEx.$;
 
+    LogsTableEx LOGS_TABLE_EX = LogsTableEx.$;
+
     MeterTableEx METER_TABLE_EX = MeterTableEx.$;
 
     ReadingTableEx READING_TABLE_EX = ReadingTableEx.$;

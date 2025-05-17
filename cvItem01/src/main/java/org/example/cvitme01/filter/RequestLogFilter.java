@@ -2,12 +2,13 @@ package org.example.cvitme01.filter;
 
 
 import com.alibaba.fastjson2.JSONObject;
-import jakarta.annotation.Resource;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.example.cvitme01.service.LogsService;
 import org.example.cvitme01.utils.Const;
 import org.example.cvitme01.utils.SnowflakeIdGenerator;
 import org.slf4j.MDC;
@@ -25,10 +26,11 @@ import java.util.Set;
  */
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class RequestLogFilter extends OncePerRequestFilter {
 
-    @Resource
-    SnowflakeIdGenerator generator;
+    private final SnowflakeIdGenerator generator;
+    private final LogsService logsService;
 
     private final Set<String> ignores = Set.of("/swagger-ui", "/v3/api-docs", "/images");
 
@@ -70,6 +72,7 @@ public class RequestLogFilter extends OncePerRequestFilter {
         // 1) 如果不是200，就打一个错误码
         if (status != 200) {
             log.warn("请求处理耗时: {}ms | 响应状态: {}", time, status);
+            logsService.saveResponseLog(status, time);
             return;
         }
 
@@ -79,10 +82,12 @@ public class RequestLogFilter extends OncePerRequestFilter {
             // 假设只打印 JSON 的
             String body = new String(wrapper.getContentAsByteArray());
             log.info("请求处理耗时: {}ms | 响应结果: {}", time, body);
+            logsService.saveResponseLog(status, time, body);
         } else {
             // 如果是二进制（Excel、图片等），只打印长度就好了
             int length = wrapper.getContentAsByteArray().length;
             log.info("请求处理耗时: {}ms | 响应结果: <BINARY>, length={} bytes", time, length);
+            logsService.saveResponseLog(status, time);
         }
     }
 
@@ -102,9 +107,11 @@ public class RequestLogFilter extends OncePerRequestFilter {
             log.info("请求URL: \"{}\" ({}) | 远程IP地址: {} │ 身份: {} (UID: {}) | 角色: {} | 请求参数列表: {}",
                     request.getServletPath(), request.getMethod(), request.getRemoteAddr(),
                     user.getUsername(), id, user.getAuthorities(), object);
+            logsService.saveRequestLog(request, id, user, object);
         } else {
             log.info("请求URL: \"{}\" ({}) | 远程IP地址: {} │ 身份: 未验证 | 请求参数列表: {}",
                     request.getServletPath(), request.getMethod(), request.getRemoteAddr(), object);
+            logsService.saveRequestLog(request, object);
         }
     }
 }
