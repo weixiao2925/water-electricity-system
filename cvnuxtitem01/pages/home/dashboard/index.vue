@@ -80,7 +80,6 @@ definePageMeta({
                     </div>
                 </div>
                 <div class="chart-container">
-                    <!-- 这里放折线图，实际项目中可以使用ECharts等库 -->
                     <div class="mock-chart">
                         <div class="chart-line" :class="selectedChartType.toLowerCase()">
                             <div v-for="(month, index) in monthlyData.months" :key="index" class="chart-point">
