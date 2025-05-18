@@ -21,4 +21,12 @@ public class HomeBillController {
                                                                     @RequestParam("year") String year) {
         return RestBean.success(billsService.getMonthlyBillSummary(id,year));
     }
+
+    @PostMapping("/success")
+    public RestBean<String> billsSuccess(@RequestParam("id") long billId) {
+        String result = billsService.billsSuccess(billId);
+        return result == null
+                ? RestBean.success()
+                : RestBean.failure(400, result);
+    }
 }

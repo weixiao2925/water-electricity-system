@@ -6,4 +6,5 @@ import java.util.List;
 
 public interface BillsService {
     List<MonthlyBillSummary> getMonthlyBillSummary(long userId, String year);
+    String billsSuccess(long id);
 }

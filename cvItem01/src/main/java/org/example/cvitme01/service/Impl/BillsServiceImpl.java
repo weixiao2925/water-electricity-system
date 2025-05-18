@@ -10,6 +10,7 @@ import org.example.cvitme01.utils.Const;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.Date;
 import java.util.List;
 
 @Service
@@ -40,5 +41,19 @@ public class BillsServiceImpl implements BillsService {
                 .where(table.billMonth().between(startMonth, endMonth))
                 .select(table.fetch(fetcher))
                 .execute();
+    }
+
+    @Override
+    public String billsSuccess(long id) {
+        MonthlyBillSummaryTable table = MonthlyBillSummaryTable.$;
+
+        return sqlClient
+                .createUpdate(table)
+                .set(table.paid(), true)
+                .set(table.paidDate(), new Date())
+                .where(table.id().eq(id))
+                .execute() > 0
+                ? null
+                : "未知错误，请联系管理员";
     }
 }
