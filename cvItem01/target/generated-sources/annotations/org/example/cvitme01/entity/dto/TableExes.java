@@ -12,6 +12,8 @@ public interface TableExes {
 
     MeterTableEx METER_TABLE_EX = MeterTableEx.$;
 
+    MonthlyBillSummaryTableEx MONTHLY_BILL_SUMMARY_TABLE_EX = MonthlyBillSummaryTableEx.$;
+
     ReadingTableEx READING_TABLE_EX = ReadingTableEx.$;
 
     TariffTierTableEx TARIFF_TIER_TABLE_EX = TariffTierTableEx.$;

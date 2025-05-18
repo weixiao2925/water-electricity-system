@@ -38,6 +38,16 @@ public interface Immutables {
         return MeterDraft.$.produce(base, block);
     }
 
+    static MonthlyBillSummary createMonthlyBillSummary(
+            DraftConsumer<MonthlyBillSummaryDraft> block) {
+        return MonthlyBillSummaryDraft.$.produce(block);
+    }
+
+    static MonthlyBillSummary createMonthlyBillSummary(MonthlyBillSummary base,
+            DraftConsumer<MonthlyBillSummaryDraft> block) {
+        return MonthlyBillSummaryDraft.$.produce(base, block);
+    }
+
     static Reading createReading(DraftConsumer<ReadingDraft> block) {
         return ReadingDraft.$.produce(block);
     }

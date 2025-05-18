@@ -12,6 +12,8 @@ public interface Tables {
 
     MeterTable METER_TABLE = MeterTable.$;
 
+    MonthlyBillSummaryTable MONTHLY_BILL_SUMMARY_TABLE = MonthlyBillSummaryTable.$;
+
     ReadingTable READING_TABLE = ReadingTable.$;
 
     TariffTierTable TARIFF_TIER_TABLE = TariffTierTable.$;

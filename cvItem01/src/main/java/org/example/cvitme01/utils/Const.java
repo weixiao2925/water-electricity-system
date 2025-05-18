@@ -1,6 +1,8 @@
 package org.example.cvitme01.utils;
 
 
+import java.time.format.DateTimeFormatter;
+
 //存入经常使用的属性
 public class Const {
     //邮箱验证码存入Redis前缀
@@ -38,4 +40,7 @@ public class Const {
     public static final String WATER = "water";
     public static final String ELECTRICITY = "electricity";
     public static final String GAS = "gas";
+
+    // 时间相关
+    public static final DateTimeFormatter MONTH_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM");
 }
