@@ -9,7 +9,7 @@ export interface MonthlyBill {
     totalGas: number;
     totalCost: number;
     status: string;
-    isPaid: boolean;
+    paid: boolean;
     paidDate: string;
 }
 

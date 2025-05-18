@@ -55,7 +55,7 @@ const getFormattedDate = (monthStr: string) => {
 
 // 获取状态标签类型
 const getStatusTagType = (bill: MonthlyBill) => {
-    if (bill.isPaid) return 'success';
+    if (bill.paid) return 'success';
     return 'warning';
 };
 
@@ -193,12 +193,16 @@ const processPayment = async () => {
 // 检查二维码支付状态
 const checkQRCodePaymentStatus = () => {
     paymentLoading.value = true;
-
-    // 模拟检查支付状态
-    setTimeout(() => {
-        paymentStep.value = 3; // 显示支付结果
-        paymentLoading.value = false;
-    }, 1500);
+    useHomeBillsService()
+        .apiSuccess(<number>currentBill.value?.id)
+        .then(()=>{
+            // 模拟检查支付状态
+            setTimeout(() => {
+                paymentStep.value = 3; // 显示支付结果
+                paymentLoading.value = false;
+                fetchData();
+            }, 1500);
+        })
 };
 
 // 关闭支付对话框
@@ -215,7 +219,7 @@ const closePaymentDialog = () => {
         totalGas: 0,
         totalCost: 0,
         status: '',
-        isPaid: false,
+        paid: false,
         paidDate: '',
     };
 };
@@ -282,7 +286,7 @@ onMounted(() => {
                             <div class="bill-header">
                                 <span class="bill-month">{{ getFormattedDate(bill.billMonth) }}账单</span>
                                 <el-tag :type="getStatusTagType(bill)" size="small" effect="light">
-                                    {{ bill.status }} {{ bill.isPaid ? '（已支付）' : '（未支付）' }}
+                                    {{ bill.status }} {{ bill.paid ? '（已支付）' : '（未支付）' }}
                                 </el-tag>
                             </div>
                         </template>
@@ -345,13 +349,13 @@ onMounted(() => {
                         <el-divider />
                         <div class="bill-footer">
                             <el-text type="info" size="small">
-                                {{ bill.isPaid ? `支付日期: ${bill.paidDate}` : '未支付' }}
+                                {{ bill.paid ? `支付日期: ${bill.paidDate}` : '未支付' }}
                             </el-text>
 
                             <div class="bill-actions">
                                 <!-- 添加支付按钮（仅对未支付账单显示） -->
                                 <el-button
-                                    v-if="!bill.isPaid"
+                                    v-if="!bill.paid"
                                     type="success"
                                     size="small"
                                     @click="openPaymentDialog(bill)"
