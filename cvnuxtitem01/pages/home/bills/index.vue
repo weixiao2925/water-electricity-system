@@ -1,109 +1,42 @@
 <script setup lang="ts">
 // 模拟账单数据
 import {Download, Wallet} from "@element-plus/icons-vue";
-import { ref, computed } from 'vue';
+import {useHomeBillsService} from "~/services/home/bills";
+import type {MonthlyBill} from "~/types/home/bills/type";
 
-// 定义支付方式类型
-type PaymentMethod = 'alipay' | 'wechat' | 'unionpay' | 'creditcard';
-
-const bills = ref([
-    {
-        id: 1,
-        month: '2025-05',
-        water: { reading: 123.5, cost: 78.4, lastReading: 118.3, usage: 5.2 },
-        electricity: { reading: 568.7, cost: 195.6, lastReading: 552.9, usage: 15.8 },
-        gas: { reading: 89.2, cost: 167.3, lastReading: 91.3, usage: -2.1 },
-        totalCost: 441.3,
-        status: '已出账',
-        isPaid: true,
-        paidDate: '2025-05-15'
-    },
-    {
-        id: 2,
-        month: '2025-04',
-        water: { reading: 118.3, cost: 73.2, lastReading: 114.1, usage: 4.2 },
-        electricity: { reading: 552.9, cost: 190.1, lastReading: 538.4, usage: 14.5 },
-        gas: { reading: 91.3, cost: 172.5, lastReading: 87.6, usage: 3.7 },
-        totalCost: 435.8,
-        status: '已出账',
-        isPaid: true,
-        paidDate: '2025-04-15'
-    },
-    {
-        id: 3,
-        month: '2025-03',
-        water: { reading: 114.1, cost: 71.8, lastReading: 110.5, usage: 3.6 },
-        electricity: { reading: 538.4, cost: 185.3, lastReading: 525.2, usage: 13.2 },
-        gas: { reading: 87.6, cost: 164.9, lastReading: 84.2, usage: 3.4 },
-        totalCost: 422.0,
-        status: '已出账',
-        isPaid: true,
-        paidDate: '2025-03-15'
-    },
-    {
-        id: 4,
-        month: '2025-02',
-        water: { reading: 110.5, cost: 69.5, lastReading: 107.2, usage: 3.3 },
-        electricity: { reading: 525.2, cost: 180.9, lastReading: 512.5, usage: 12.7 },
-        gas: { reading: 84.2, cost: 158.3, lastReading: 81.0, usage: 3.2 },
-        totalCost: 408.7,
-        status: '已出账',
-        isPaid: false,
-        paidDate: ''
-    },
-    {
-        id: 5,
-        month: '2023-01',
-        water: { reading: 107.2, cost: 67.3, lastReading: 104.0, usage: 3.2 },
-        electricity: { reading: 512.5, cost: 176.8, lastReading: 500.1, usage: 12.4 },
-        gas: { reading: 81.0, cost: 152.2, lastReading: 78.0, usage: 3.0 },
-        totalCost: 396.3,
-        status: '已出账',
-        isPaid: false,
-        paidDate: ''
-    }
-]);
-
+const billsSummary = ref<MonthlyBill[]>([])
 // 筛选选项
 const filterOptions = ref({
     year: new Date().getFullYear(),
     status: '全部',
 });
-
 // 年份选项
-const yearOptions = [2025, 2022, 2021];
+const yearOptions = [2025, 2024, 2023, 2022, 2021];
 // 状态选项
 const statusOptions = ['全部', '已出账', '未出账', '已支付', '未支付'];
+// 定义支付方式类型
+type PaymentMethod = 'alipay' | 'wechat' | 'unionpay' | 'creditcard';
+const paymentMethods = [
+    { value: 'alipay', label: '支付宝', icon: 'https://zos.alipayobjects.com/rmsportal/nOUVKmLtktfaqBu.png' },
+    { value: 'wechat', label: '微信支付', icon: 'https://res.wx.qq.com/a/wx_fed/assets/res/OTE0YTAw.png' },
+    { value: 'unionpay', label: '银联云闪付', icon: 'https://cn.unionpay.com/upowhtml/cn/resources/images/header/homepage-logo.png' },
+    { value: 'creditcard', label: '信用卡', icon: 'https://img.icons8.com/color/48/000000/visa.png' },
+];
 
-// 筛选账单
-const filteredBills = computed(() => {
-    let result = [...bills.value];
 
-    // 按年份筛选
-    if (filterOptions.value.year) {
-        result = result.filter(bill => {
-            const billYear = parseInt(bill.month.split('-')[0]);
-            return billYear === filterOptions.value.year;
-        });
-    }
-
-    // 按状态筛选
-    if (filterOptions.value.status !== '全部') {
-        if (filterOptions.value.status === '已支付') {
-            result = result.filter(bill => bill.isPaid);
-        } else if (filterOptions.value.status === '未支付') {
-            result = result.filter(bill => !bill.isPaid);
-        } else {
-            result = result.filter(bill => bill.status === filterOptions.value.status);
-        }
-    }
-
-    return result;
-});
+const fetchData = () => {
+    useHomeBillsService()
+        .apiGetBillsSummary(filterOptions.value.year.toString())
+        .then(res => {
+            billsSummary.value = []
+            Object.assign(billsSummary.value, res.data);
+            console.log(billsSummary.value);
+        })
+}
 
 // 下载PDF
 const downloadPDF = (billId: number) => {
-    const bill = bills.value.find(b => b.id === billId);
+    const bill = billsSummary.value.find(b => b.id === billId);
 
     if (!bill) {
         ElMessage.error('账单不存在');
@@ -111,13 +44,7 @@ const downloadPDF = (billId: number) => {
     }
 
     // 实际开发中应该调用后端API生成并下载PDF
-    ElMessage.success(`正在下载 ${bill.month} 的账单PDF`);
-};
-
-// 获取月份名称
-const getMonthName = (monthStr: string) => {
-    const month = parseInt(monthStr.split('-')[1]);
-    return `${month}月`;
+    ElMessage.success(`正在下载 ${bill.billMonth} 的账单PDF`);
 };
 
 // 获取实际应用中显示的日期（YYYY年MM月）
@@ -127,25 +54,18 @@ const getFormattedDate = (monthStr: string) => {
 };
 
 // 获取状态标签类型
-const getStatusTagType = (bill:any) => {
+const getStatusTagType = (bill: MonthlyBill) => {
     if (bill.isPaid) return 'success';
     return 'warning';
 };
 
 // 支付相关变量和方法
 const paymentDialogVisible = ref(false);
-const currentBill = ref<any>(null);
+const currentBill = ref<MonthlyBill>();
 const selectedPaymentMethod = ref<PaymentMethod>('alipay');
 const paymentLoading = ref(false);
 const paymentQRCode = ref('');
-const paymentStep = ref(1); // 1: 选择支付方式 2: 显示支付二维码 3: 支付结果
-
-const paymentMethods = [
-    { value: 'alipay', label: '支付宝', icon: 'https://zos.alipayobjects.com/rmsportal/nOUVKmLtktfaqBu.png' },
-    { value: 'wechat', label: '微信支付', icon: 'https://res.wx.qq.com/a/wx_fed/assets/res/OTE0YTAw.png' },
-    { value: 'unionpay', label: '银联云闪付', icon: 'https://cn.unionpay.com/upowhtml/cn/resources/images/header/homepage-logo.png' },
-    { value: 'creditcard', label: '信用卡', icon: 'https://img.icons8.com/color/48/000000/visa.png' },
-];
+const paymentStep = ref(1);
 
 // 卡号相关
 const cardNumber = ref('');
@@ -193,6 +113,7 @@ const cardFormRules = {
 
 // 打开支付对话框
 const openPaymentDialog = (bill: any) => {
+    console.log(bill)
     currentBill.value = bill;
     paymentDialogVisible.value = true;
     paymentStep.value = 1;
@@ -265,15 +186,6 @@ const processPayment = async () => {
     // 这里使用setTimeout模拟API调用
     await new Promise(resolve => setTimeout(resolve, 2000));
 
-    // 更新账单状态
-    if (currentBill.value) {
-        const billIndex = bills.value.findIndex(b => b.id === currentBill.value.id);
-        if (billIndex !== -1) {
-            bills.value[billIndex].isPaid = true;
-            bills.value[billIndex].paidDate = new Date().toISOString().split('T')[0];
-        }
-    }
-
     paymentStep.value = 3; // 显示支付结果
     paymentLoading.value = false;
 };
@@ -284,15 +196,6 @@ const checkQRCodePaymentStatus = () => {
 
     // 模拟检查支付状态
     setTimeout(() => {
-        // 模拟支付成功
-        if (currentBill.value) {
-            const billIndex = bills.value.findIndex(b => b.id === currentBill.value.id);
-            if (billIndex !== -1) {
-                bills.value[billIndex].isPaid = true;
-                bills.value[billIndex].paidDate = new Date().toISOString().split('T')[0];
-            }
-        }
-
         paymentStep.value = 3; // 显示支付结果
         paymentLoading.value = false;
     }, 1500);
@@ -301,11 +204,28 @@ const checkQRCodePaymentStatus = () => {
 // 关闭支付对话框
 const closePaymentDialog = () => {
     paymentDialogVisible.value = false;
-    currentBill.value = null;
+    currentBill.value = {
+        id: -1,
+        billMonth: '',
+        meterWater: 0,
+        meterElectricity: 0,
+        meterGas: 0,
+        totalWater: 0,
+        totalElectricity: 0,
+        totalGas: 0,
+        totalCost: 0,
+        status: '',
+        isPaid: false,
+        paidDate: '',
+    };
 };
+
 
 definePageMeta({
     layout: "home"
+});
+onMounted(() => {
+    fetchData();
 });
 </script>
 
@@ -322,7 +242,7 @@ definePageMeta({
                     <el-row :gutter="20">
                         <el-col :xs="24" :sm="12" :md="8">
                             <el-form-item label="年份:">
-                                <el-select v-model="filterOptions.year" size="small" style="width: 120px">
+                                <el-select v-model="filterOptions.year" size="small" style="width: 120px" @change="fetchData">
                                     <el-option
                                         v-for="year in yearOptions"
                                         :key="year"
@@ -349,18 +269,18 @@ definePageMeta({
                 </el-card>
 
                 <!-- 账单卡片列表 -->
-                <el-empty v-if="filteredBills.length === 0" description="没有符合条件的账单记录" />
+                <el-empty v-if="billsSummary.length === 0" description="没有符合条件的账单记录" />
 
                 <div v-else class="bills-list">
                     <el-card
-                        v-for="bill in filteredBills"
+                        v-for="bill in billsSummary"
                         :key="bill.id"
                         class="bill-card"
                         shadow="hover"
                     >
                         <template #header>
                             <div class="bill-header">
-                                <span class="bill-month">{{ getFormattedDate(bill.month) }}账单</span>
+                                <span class="bill-month">{{ getFormattedDate(bill.billMonth) }}账单</span>
                                 <el-tag :type="getStatusTagType(bill)" size="small" effect="light">
                                     {{ bill.status }} {{ bill.isPaid ? '（已支付）' : '（未支付）' }}
                                 </el-tag>
@@ -374,40 +294,19 @@ definePageMeta({
                                     <el-descriptions :column="1" size="small" border>
                                         <el-descriptions-item label="水表读数">
                                             <div class="reading-info">
-                                                <span>{{ bill.water.reading }} m³</span>
-                                                <el-tag
-                                                    :type="bill.water.usage > 0 ? 'danger' : 'success'"
-                                                    size="small"
-                                                    effect="plain"
-                                                >
-                                                    {{ bill.water.usage > 0 ? '+' : '' }}{{ bill.water.usage }} m³
-                                                </el-tag>
+                                                <span>{{ bill.meterWater }} m³</span>
                                             </div>
                                         </el-descriptions-item>
 
                                         <el-descriptions-item label="电表读数">
                                             <div class="reading-info">
-                                                <span>{{ bill.electricity.reading }} kWh</span>
-                                                <el-tag
-                                                    :type="bill.electricity.usage > 0 ? 'danger' : 'success'"
-                                                    size="small"
-                                                    effect="plain"
-                                                >
-                                                    {{ bill.electricity.usage > 0 ? '+' : '' }}{{ bill.electricity.usage }} kWh
-                                                </el-tag>
+                                                <span>{{ bill.meterElectricity }} kWh</span>
                                             </div>
                                         </el-descriptions-item>
 
                                         <el-descriptions-item label="气表读数">
                                             <div class="reading-info">
-                                                <span>{{ bill.gas.reading }} m³</span>
-                                                <el-tag
-                                                    :type="bill.gas.usage > 0 ? 'danger' : 'success'"
-                                                    size="small"
-                                                    effect="plain"
-                                                >
-                                                    {{ bill.gas.usage > 0 ? '+' : '' }}{{ bill.gas.usage }} m³
-                                                </el-tag>
+                                                <span>{{ bill.meterGas }} m³</span>
                                             </div>
                                         </el-descriptions-item>
                                     </el-descriptions>
@@ -420,23 +319,23 @@ definePageMeta({
                                     <template #header>
                                         <div class="cost-header">
                                             <span>费用明细</span>
-                                            <span class="total-cost">总计: ¥{{ bill.totalCost.toFixed(2) }}</span>
+                                            <span class="total-cost">总计: ¥{{ bill.totalCost }}</span>
                                         </div>
                                     </template>
 
                                     <el-row class="cost-item">
                                         <el-col :span="12">水费</el-col>
-                                        <el-col :span="12" class="cost-value">¥{{ bill.water.cost.toFixed(2) }}</el-col>
+                                        <el-col :span="12" class="cost-value">¥{{ bill.totalWater }}</el-col>
                                     </el-row>
 
                                     <el-row class="cost-item">
                                         <el-col :span="12">电费</el-col>
-                                        <el-col :span="12" class="cost-value">¥{{ bill.electricity.cost.toFixed(2) }}</el-col>
+                                        <el-col :span="12" class="cost-value">¥{{ bill.totalElectricity }}</el-col>
                                     </el-row>
 
                                     <el-row class="cost-item">
                                         <el-col :span="12">气费</el-col>
-                                        <el-col :span="12" class="cost-value">¥{{ bill.gas.cost.toFixed(2) }}</el-col>
+                                        <el-col :span="12" class="cost-value">¥{{ bill.totalGas }}</el-col>
                                     </el-row>
                                 </el-card>
                             </el-col>
@@ -494,7 +393,7 @@ definePageMeta({
             <!-- 步骤1: 选择支付方式 -->
             <div v-if="paymentStep === 1">
                 <div class="payment-info">
-                    <p>账单: {{ currentBill ? getFormattedDate(currentBill.month) : '' }} 水电气费</p>
+                    <p>账单: {{ currentBill ? getFormattedDate(currentBill.billMonth) : '' }} 水电气费</p>
                     <p class="payment-amount">金额: <span>¥{{ currentBill ? currentBill.totalCost.toFixed(2) : '0.00' }}</span></p>
                 </div>
 
@@ -505,10 +404,11 @@ definePageMeta({
                     <el-radio-button v-for="method in paymentMethods" :key="method.value" :label="method.value" class="payment-method-item">
                         <div class="payment-method-content">
                             <el-image :src="method.icon" :alt="method.label" fit="contain" class="payment-method-icon" />
-<!--                            <span>{{ method.label }}</span>-->
                         </div>
+                        <span>{{ method.label }}</span>
                     </el-radio-button>
                 </el-radio-group>
+
 
                 <!-- 信用卡表单 -->
                 <div v-if="selectedPaymentMethod === 'creditcard'" class="credit-card-form">
@@ -558,7 +458,7 @@ definePageMeta({
                     <el-icon class="result-icon success"><el-icon-circle-check /></el-icon>
                 </div>
                 <h2 class="result-title">支付成功</h2>
-                <p class="result-desc">您已成功支付了 {{ currentBill ? getFormattedDate(currentBill.month) : '' }} 的水电气费账单</p>
+                <p class="result-desc">您已成功支付了 {{ currentBill ? getFormattedDate(currentBill.billMonth) : '' }} 的水电气费账单</p>
                 <p class="result-amount">支付金额: ￥{{ currentBill ? currentBill.totalCost.toFixed(2) : '0.00' }}</p>
                 <p class="result-date">支付时间: {{ new Date().toLocaleString('zh-CN') }}</p>
             </div>
