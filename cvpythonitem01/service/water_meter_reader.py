@@ -167,7 +167,7 @@ def detect_dial_readings(image):
         dial_count += 1
         print(f"\n--- 处理表盘 {dial_count} (Center: ({cx},{cy}), Radius: {r}) ---")
 
-        # ��取ROI
+        # 读取ROI
         roi_margin = int(r * 0.1)
         x_start = max(0, cx - r - roi_margin)
         y_start = max(0, cy - r - roi_margin)
@@ -357,58 +357,3 @@ def read_water_meter(image_path):
                 (10, 90), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2)
 
     return final_reading, final_image, digital_result, decimal_part
-
-
-if __name__ == "__main__":
-    image_file = 'img/25.png'  # 请确保路径正确
-
-    # 读取水表
-    digital_result, pointer_readings, final_image = read_water_meter(image_file)
-
-    if final_image is not None:
-        # 显示读数结果
-        print("\n=== 最终读数结果 ===")
-        print(f"数字显示部分: {digital_result if digital_result else '未检测到'}")
-
-        if pointer_readings:
-            # 从右到左排序 (X坐标降序)
-            sorted_centers = sorted(pointer_readings.keys(), key=lambda k: k[0], reverse=True)
-            pointer_result_str = ""
-            print("指针读数 (按从右到左排序):")
-
-            # 设置小数位权重 (从右到左: 0.1, 0.01, 0.001, 0.0001)
-            weights = [0.1, 0.01, 0.001, 0.0001]
-            pointer_result_weighted_sum = 0
-
-            for i, center in enumerate(sorted_centers):
-                reading = pointer_readings[center]
-
-                # 获取当前位置的权重，确保不超出列表范围
-                weight = weights[i] if i < len(weights) else 0
-                weighted_value = reading * weight
-
-                print(f"  位置 ({center[0]}, {center[1]}): {reading} × {weight} = {weighted_value:.4f}")
-                pointer_result_str += str(reading)
-
-                # 累加加权值
-                pointer_result_weighted_sum += weighted_value
-
-            print(f"指针读数(从右到左): {pointer_result_str}")
-            print(f"指针总读数(加权和): {pointer_result_weighted_sum:.4f}")
-        else:
-            print("未检测到有效的指针读数。")
-
-        # 显示最终图像
-        plt.figure(figsize=(12, 10))
-        plt.imshow(cv2.cvtColor(final_image, cv2.COLOR_BGR2RGB))
-        plt.title('水表读数识别结果')
-        plt.axis('off')
-        plt.tight_layout()
-        plt.show()
-
-        # 也可以使用OpenCV显示
-        cv2.imshow('水表读数识别结果', final_image)
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
-    else:
-        print("处理失败，请检查输入图像路径。")
