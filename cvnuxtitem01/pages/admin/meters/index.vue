@@ -307,9 +307,9 @@ function fetchMeters() {
       meterNumber: `M-${100000 + i}`,
       address: `测试地址 ${i + 1}`,
       owner: `用户 ${i + 1}`,
-      installDate: new Date(2022, i % 12, (i % 28) + 1).toISOString().split('T')[0],
+      installDate: new Date(2025, i % 12, (i % 28) + 1).toISOString().split('T')[0],
       active: i % 5 !== 0, // 每5个有一个停用的
-      createdAt: new Date(2022, 0, 1).toISOString()
+      createdAt: new Date(2025, 0, 1).toISOString()
     }));
     totalItems.value = meters.value.length;
   }, 300);

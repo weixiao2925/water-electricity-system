@@ -9,10 +9,10 @@
                             <label>账单周期</label>
                             <select v-model="filters.period">
                                 <option value="">全部</option>
-                                <option value="202301">2023年1月</option>
-                                <option value="202302">2023年2月</option>
-                                <option value="202303">2023年3月</option>
-                                <option value="202304">2023年4月</option>
+                                <option value="202501">2025年1月</option>
+                                <option value="202502">2025年2月</option>
+                                <option value="202503">2025年3月</option>
+                                <option value="202504">2025年4月</option>
                             </select>
                         </div>
                         <div class="filter-item">
@@ -120,18 +120,18 @@ definePageMeta({
 });
 // 模拟数据 - 实际项目中应从API获取
 const mockBills = [
-  { id: 'BILL-20230101', user: '张三', period: '202301', amount: 128.50, createdAt: '2023-02-01', status: 'paid' },
-  { id: 'BILL-20230102', user: '李四', period: '202301', amount: 210.75, createdAt: '2023-02-01', status: 'paid' },
-  { id: 'BILL-20230103', user: '王五', period: '202301', amount: 89.20, createdAt: '2023-02-01', status: 'unpaid' },
-  { id: 'BILL-20230104', user: '赵六', period: '202301', amount: 156.30, createdAt: '2023-02-01', status: 'overdue' },
-  { id: 'BILL-20230201', user: '张三', period: '202302', amount: 135.80, createdAt: '2023-03-01', status: 'paid' },
-  { id: 'BILL-20230202', user: '李四', period: '202302', amount: 225.40, createdAt: '2023-03-01', status: 'unpaid' },
-  { id: 'BILL-20230203', user: '王五', period: '202302', amount: 95.60, createdAt: '2023-03-01', status: 'paid' },
-  { id: 'BILL-20230204', user: '赵六', period: '202302', amount: 168.20, createdAt: '2023-03-01', status: 'overdue' },
-  { id: 'BILL-20230301', user: '张三', period: '202303', amount: 142.30, createdAt: '2023-04-01', status: 'paid' },
-  { id: 'BILL-20230302', user: '李四', period: '202303', amount: 215.90, createdAt: '2023-04-01', status: 'unpaid' },
-  { id: 'BILL-20230303', user: '王五', period: '202303', amount: 102.40, createdAt: '2023-04-01', status: 'paid' },
-  { id: 'BILL-20230304', user: '赵六', period: '202303', amount: 178.60, createdAt: '2023-04-01', status: 'overdue' },
+  { id: 'BILL-20250101', user: '张三', period: '202501', amount: 128.50, createdAt: '2025-02-01', status: 'paid' },
+  { id: 'BILL-20250102', user: '李四', period: '202501', amount: 210.75, createdAt: '2025-02-01', status: 'paid' },
+  { id: 'BILL-20250103', user: '王五', period: '202501', amount: 89.20, createdAt: '2025-02-01', status: 'unpaid' },
+  { id: 'BILL-20250104', user: '赵六', period: '202501', amount: 156.30, createdAt: '2025-02-01', status: 'overdue' },
+  { id: 'BILL-20250201', user: '张三', period: '202502', amount: 135.80, createdAt: '2025-03-01', status: 'paid' },
+  { id: 'BILL-20250202', user: '李四', period: '202502', amount: 225.40, createdAt: '2025-03-01', status: 'unpaid' },
+  { id: 'BILL-20250203', user: '王五', period: '202502', amount: 95.60, createdAt: '2025-03-01', status: 'paid' },
+  { id: 'BILL-20250204', user: '赵六', period: '202502', amount: 168.20, createdAt: '2025-03-01', status: 'overdue' },
+  { id: 'BILL-20250301', user: '张三', period: '202503', amount: 142.30, createdAt: '2025-04-01', status: 'paid' },
+  { id: 'BILL-20250302', user: '李四', period: '202503', amount: 215.90, createdAt: '2025-04-01', status: 'unpaid' },
+  { id: 'BILL-20250303', user: '王五', period: '202503', amount: 102.40, createdAt: '2025-04-01', status: 'paid' },
+  { id: 'BILL-20250304', user: '赵六', period: '202503', amount: 178.60, createdAt: '2025-04-01', status: 'overdue' },
 ];
 
 // 状态管理
