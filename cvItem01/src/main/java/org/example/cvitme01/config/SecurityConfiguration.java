@@ -10,7 +10,7 @@ import org.example.cvitme01.entity.vo.response.AuthorizeVO;
 import org.example.cvitme01.filter.JwtAuthorizeFilter;
 import org.example.cvitme01.service.AccountService;
 import org.example.cvitme01.utils.Const;
-import org.example.cvitme01.utils.JwtUtils;
+import org.example.cvitme01.utils.jwt.JwtManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.access.AccessDeniedException;
@@ -32,7 +32,7 @@ import java.io.PrintWriter;
 public class SecurityConfiguration {
 
     private final AccountService accountService;
-    private final JwtUtils jwtUtils;
+    private final JwtManager jwtManager;
     private final JwtAuthorizeFilter jwtAuthorizeFilter;
 
     //security过滤器链
@@ -93,12 +93,12 @@ public class SecurityConfiguration {
         //获取存在数据库里面的用户信息
         Account account=accountService.findByUsername(user.getUsername());
         //创建jwt，发布token
-        String token=jwtUtils.createJwt(user, Math.toIntExact(account.id()), account.username());
+        String token=jwtManager.createJwt(user, Math.toIntExact(account.id()), account.username());
         AuthorizeVO vo =new AuthorizeVO();
         vo.setUsername(account.username());
         vo.setRole(account.role());
         vo.setToken(token);
-        vo.setExpire(jwtUtils.expireTime());
+        vo.setExpire(jwtManager.expireTime());
         response.getWriter().write(RestBean.success(vo).asJsonString());
     }
     //登录失败
@@ -117,7 +117,7 @@ public class SecurityConfiguration {
         PrintWriter writer = response.getWriter();
         String authorization=request.getHeader("Authorization");//获取Authorization请求头中的jwt信息
         log.warn(authorization);
-        if (jwtUtils.invalidateJwt(authorization)){
+        if (jwtManager.invalidateJwt(authorization)){
             writer.write(RestBean.success().asJsonString());
         }else {
             writer.write(RestBean.failure(400,"退出登录失败").asJsonString());
