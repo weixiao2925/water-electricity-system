@@ -28,7 +28,7 @@ public class AdminTariffController {
     @GetMapping("/now-version")
     public RestBean<TariffVersion> getNowVersion(
             @RequestParam("type") @Valid
-            @NotNull @Pattern(regexp = "water|electricity") String type ) {
+            @NotNull @Pattern(regexp = "water|electricity|gas") String type ) {
         TariffVersion message = adminTariffService.getNowVersion(type);
         return message !=null
                 ?RestBean.success(message)
@@ -38,7 +38,8 @@ public class AdminTariffController {
     @GetMapping("/version")
     public RestBean<List<TariffVersion>> getVersion(
             @RequestParam("type") @Valid
-            @NotNull @Pattern(regexp = "water|electricity") String type){
+            @NotNull @Pattern(regexp = "water|electricity|gas") String type){
+
         List<TariffVersion> message = adminTariffService.getVersion(type);
         return message !=null
                 ?RestBean.success(message)
@@ -48,7 +49,7 @@ public class AdminTariffController {
     @PostMapping("/version-change")
     public RestBean<String> versionChange(
             @RequestParam("type") @Valid @NotNull
-            @Pattern(regexp = "water|electricity") String type,
+            @Pattern(regexp = "water|electricity|gas") String type,
             @RequestParam("oldId") long oldId,
             @RequestParam("newId") long newId) {
         String message = adminTariffService.changeTariffVersion(type, oldId, newId);
@@ -60,7 +61,7 @@ public class AdminTariffController {
     @PostMapping("/save")
     public RestBean<String> saveTariffTier(
             @RequestParam("type") @Valid @NotNull
-            @Pattern(regexp = "water|electricity") String type,
+            @Pattern(regexp = "water|electricity|gas") String type,
             @RequestParam("versionId") long versionId,
             @RequestBody TariffTierSaveRequest request) {
         String message = adminTariffService.saveTariffTier(type, versionId, request);
