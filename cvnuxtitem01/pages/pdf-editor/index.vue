@@ -22,6 +22,20 @@
             只能上传PDF文件，文件大小不超过50MB
           </div>
         </el-upload>
+        
+        <div class="demo-section">
+          <el-divider>或者</el-divider>
+          <el-button 
+            type="info" 
+            @click="generateSamplePdf"
+            :loading="generatingSample"
+          >
+            📄 下载示例PDF文件
+          </el-button>
+          <p class="demo-tip">
+            下载包含敏感信息的示例PDF文件，用于测试编辑功能
+          </p>
+        </div>
       </div>
 
       <!-- PDF编辑器主界面 -->
@@ -62,6 +76,7 @@
           <div class="toolbar-section">
             <el-button @click="clearRedactions" :icon="Clear">清除所有</el-button>
             <el-button @click="showPatternDialog = true" :icon="Setting">高级设置</el-button>
+            <el-button @click="showHelpDialog = true" :icon="QuestionFilled">帮助</el-button>
           </div>
 
           <div class="toolbar-section">
@@ -153,34 +168,83 @@
       </div>
 
       <!-- 模式识别对话框 -->
-      <el-dialog v-model="showPatternDialog" title="高级编辑设置" width="500px">
+      <el-dialog v-model="showPatternDialog" title="高级编辑设置" width="600px">
         <el-form :model="patternSettings" label-width="120px">
-          <el-form-item label="文本模式">
+          <el-form-item label="内置模式">
             <el-checkbox-group v-model="patternSettings.textPatterns">
-              <el-checkbox label="email">邮箱地址</el-checkbox>
-              <el-checkbox label="phone">电话号码</el-checkbox>
-              <el-checkbox label="id">身份证号</el-checkbox>
-              <el-checkbox label="bank">银行卡号</el-checkbox>
+              <div class="pattern-grid">
+                <el-checkbox label="email">📧 邮箱地址</el-checkbox>
+                <el-checkbox label="phone">📱 电话号码</el-checkbox>
+                <el-checkbox label="id">🆔 身份证号</el-checkbox>
+                <el-checkbox label="bank">💳 银行卡号</el-checkbox>
+                <el-checkbox label="creditCard">💰 信用卡号</el-checkbox>
+                <el-checkbox label="ipAddress">🌐 IP地址</el-checkbox>
+                <el-checkbox label="url">🔗 网址链接</el-checkbox>
+                <el-checkbox label="address">📍 地址信息</el-checkbox>
+              </div>
             </el-checkbox-group>
           </el-form-item>
           
           <el-form-item label="自定义模式">
             <el-input
               v-model="patternSettings.customPattern"
-              placeholder="输入正则表达式"
+              placeholder="输入正则表达式，例如: \\d{4}-\\d{4}-\\d{4}-\\d{4}"
               clearable
-            ></el-input>
+            >
+              <template #append>
+                <el-button @click="validatePattern">验证</el-button>
+              </template>
+            </el-input>
+            <div class="pattern-help">
+              <small>支持标准正则表达式。例如匹配手机号: 1[3-9]\\d{9}</small>
+            </div>
           </el-form-item>
 
           <el-form-item label="批量处理">
-            <el-switch v-model="patternSettings.batchMode" active-text="启用"></el-switch>
+            <el-switch 
+              v-model="patternSettings.batchMode" 
+              active-text="处理所有页面"
+              inactive-text="仅当前页面"
+            ></el-switch>
+          </el-form-item>
+
+          <el-form-item label="预览">
+            <div class="pattern-preview">
+              <div v-if="patternSettings.textPatterns.length > 0">
+                <strong>将查找以下类型的敏感信息:</strong>
+                <ul>
+                  <li v-for="pattern in patternSettings.textPatterns" :key="pattern">
+                    {{ getPatternDescription(pattern) }}
+                  </li>
+                </ul>
+              </div>
+              <div v-if="patternSettings.customPattern">
+                <strong>自定义模式:</strong> {{ patternSettings.customPattern }}
+              </div>
+            </div>
           </el-form-item>
         </el-form>
         
         <template #footer>
           <span class="dialog-footer">
             <el-button @click="showPatternDialog = false">取消</el-button>
-            <el-button type="primary" @click="applyPatternRedaction">应用</el-button>
+            <el-button 
+              type="primary" 
+              @click="applyPatternRedaction"
+              :disabled="patternSettings.textPatterns.length === 0 && !patternSettings.customPattern"
+            >
+              应用模式识别
+            </el-button>
+          </span>
+        </template>
+      </el-dialog>
+
+      <!-- 帮助对话框 -->
+      <el-dialog v-model="showHelpDialog" title="使用帮助" width="90%" fullscreen>
+        <PDFEditorHelp />
+        <template #footer>
+          <span class="dialog-footer">
+            <el-button type="primary" @click="showHelpDialog = false">关闭</el-button>
           </span>
         </template>
       </el-dialog>
@@ -203,8 +267,20 @@ import {
   ArrowLeft,
   ArrowRight,
   ZoomIn,
-  ZoomOut
+  ZoomOut,
+  QuestionFilled
 } from '@element-plus/icons-vue'
+import { 
+  getBuiltInPatterns, 
+  validateCustomPattern,
+  formatFileSize,
+  isValidPdfFile,
+  downloadFile,
+  createRedactionStats,
+  handleKeyboardShortcut,
+  PDFEditorShortcuts
+} from '~/utils/pdfUtils'
+import { downloadSamplePDF } from '~/utils/samplePdf'
 
 // 页面元数据
 definePageMeta({
@@ -236,6 +312,8 @@ const processing = ref(false)
 const processingProgress = ref(0)
 const processingMessage = ref('')
 const showPatternDialog = ref(false)
+const showHelpDialog = ref(false)
+const generatingSample = ref(false)
 
 // 模式设置
 const patternSettings = ref({
@@ -257,10 +335,10 @@ const pdfCanvasRef = ref()
 const handleFileChange = async (file: any) => {
   if (!file.raw) return
   
-  // 检查文件大小 (50MB)
-  const maxSize = 50 * 1024 * 1024
-  if (file.raw.size > maxSize) {
-    ElMessage.error('文件大小不能超过50MB')
+  // 验证文件
+  const validation = isValidPdfFile(file.raw)
+  if (!validation.valid) {
+    ElMessage.error(validation.error!)
     return
   }
   
@@ -273,7 +351,7 @@ const handleFileChange = async (file: any) => {
     await loadPdf(arrayBuffer)
     
     processing.value = false
-    ElMessage.success('PDF文件加载成功')
+    ElMessage.success(`PDF文件加载成功 (${formatFileSize(file.raw.size)})`)
   } catch (error) {
     console.error('加载PDF失败:', error)
     ElMessage.error('加载PDF文件失败: ' + (error as Error).message)
@@ -492,6 +570,16 @@ const applyPatternRedaction = async () => {
     
     processingProgress.value = 30
     
+    // 验证自定义模式
+    if (customPattern) {
+      const validation = validateCustomPattern(customPattern)
+      if (!validation.valid) {
+        ElMessage.error(validation.error!)
+        processing.value = false
+        return
+      }
+    }
+    
     // 应用模式编辑
     await pdfRedaction.applyPatternRedaction(textPatterns, customPattern)
     
@@ -505,7 +593,7 @@ const applyPatternRedaction = async () => {
     processing.value = false
     showPatternDialog.value = false
     
-    const stats = pdfRedaction.getRedactionStats()
+    const stats = createRedactionStats(redactions.value)
     ElMessage.success(`成功识别并标记了 ${stats.total} 个敏感信息区域`)
     
   } catch (error) {
@@ -534,18 +622,10 @@ const downloadRedactedPdf = async () => {
     
     processingProgress.value = 80
     
-    // 创建下载链接
+    // 使用工具函数下载文件
     const blob = new Blob([redactedBytes], { type: 'application/pdf' })
-    const url = URL.createObjectURL(blob)
-    
-    const link = document.createElement('a')
-    link.href = url
-    link.download = `redacted_document_${Date.now()}.pdf`
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-    
-    URL.revokeObjectURL(url)
+    const filename = `redacted_document_${Date.now()}.pdf`
+    downloadFile(blob, filename)
     
     processingProgress.value = 100
     processing.value = false
@@ -556,6 +636,64 @@ const downloadRedactedPdf = async () => {
     console.error('下载失败:', error)
     ElMessage.error('生成编辑后的PDF失败: ' + (error as Error).message)
     processing.value = false
+  }
+}
+
+// 键盘快捷键处理
+const handleKeydown = (event: KeyboardEvent) => {
+  const shortcuts = {
+    [PDFEditorShortcuts.UNDO]: undo,
+    [PDFEditorShortcuts.REDO]: redo,
+    [PDFEditorShortcuts.DELETE_SELECTED]: () => {
+      // 如果有选中的编辑区域，删除它
+      // 这里可以添加选中编辑区域的逻辑
+    },
+    [PDFEditorShortcuts.ZOOM_IN]: zoomIn,
+    [PDFEditorShortcuts.ZOOM_OUT]: zoomOut,
+    [PDFEditorShortcuts.RESET_ZOOM]: () => {
+      zoomLevel.value = 1
+      nextTick(() => renderCurrentPage())
+    },
+    [PDFEditorShortcuts.NEXT_PAGE]: nextPage,
+    [PDFEditorShortcuts.PREV_PAGE]: previousPage,
+    [PDFEditorShortcuts.SAVE]: downloadRedactedPdf
+  }
+  
+  handleKeyboardShortcut(event, shortcuts)
+}
+
+// 获取模式描述
+const getPatternDescription = (patternName: string): string => {
+  const patterns = getBuiltInPatterns()
+  return patterns[patternName]?.description || patternName
+}
+
+// 验证自定义模式
+const validatePattern = () => {
+  if (!patternSettings.value.customPattern) {
+    ElMessage.warning('请输入自定义模式')
+    return
+  }
+  
+  const validation = validateCustomPattern(patternSettings.value.customPattern)
+  if (validation.valid) {
+    ElMessage.success('模式验证成功')
+  } else {
+    ElMessage.error(validation.error!)
+  }
+}
+
+// 生成示例PDF
+const generateSamplePdf = async () => {
+  try {
+    generatingSample.value = true
+    await downloadSamplePDF()
+    ElMessage.success('示例PDF文件已下载，请将其拖拽到上传区域进行测试')
+  } catch (error) {
+    console.error('生成示例PDF失败:', error)
+    ElMessage.error('生成示例PDF失败')
+  } finally {
+    generatingSample.value = false
   }
 }
 
@@ -593,6 +731,14 @@ watch(currentPage, () => {
 onMounted(() => {
   history.value = [[]]
   historyIndex.value = 0
+  
+  // 添加键盘事件监听
+  document.addEventListener('keydown', handleKeydown)
+})
+
+onUnmounted(() => {
+  // 清理键盘事件监听
+  document.removeEventListener('keydown', handleKeydown)
 })
 </script>
 
@@ -617,6 +763,17 @@ onMounted(() => {
 
 .upload-dragger {
   width: 100%;
+}
+
+.demo-section {
+  text-align: center;
+  margin-top: 20px;
+}
+
+.demo-tip {
+  margin-top: 10px;
+  color: #909399;
+  font-size: 14px;
 }
 
 .editor-container {
@@ -752,6 +909,33 @@ onMounted(() => {
 .processing-content p {
   margin-top: 15px;
   color: #666;
+}
+
+.pattern-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 10px;
+}
+
+.pattern-help {
+  margin-top: 8px;
+  color: #909399;
+}
+
+.pattern-preview {
+  background: #f9f9f9;
+  padding: 15px;
+  border-radius: 4px;
+  border: 1px solid #e6e6e6;
+}
+
+.pattern-preview ul {
+  margin: 8px 0 0 20px;
+  color: #666;
+}
+
+.pattern-preview ul li {
+  margin: 4px 0;
 }
 
 @media (max-width: 768px) {
