@@ -236,8 +236,13 @@ onMounted(() => {
 <template>
     <NuxtLayout>
         <el-container class="bills-container">
-            <el-header style="display: flex;align-items: center;justify-content: center">
+            <el-header style="display: flex;align-items: center;justify-content: space-between">
                 <h1 class="page-title">账单中心</h1>
+                <div class="header-actions">
+                    <el-button type="primary" @click="navigateTo('/pdf-editor')" size="small">
+                        📝 PDF编辑器
+                    </el-button>
+                </div>
             </el-header>
 
             <el-main>

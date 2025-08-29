@@ -19,7 +19,8 @@ const menuItems: MenuItem[] = [
     { path: '/home/dashboard', icon: '📊', label: '仪表盘' },
     { path: '/home/upload', icon: '📷', label: '上传识读' },
     { path: '/home/meters', icon: '🔧', label: '我的表计' },
-    { path: '/home/bills', icon: '📃', label: '账单中心' }
+    { path: '/home/bills', icon: '📃', label: '账单中心' },
+    { path: '/pdf-editor', icon: '📝', label: 'PDF编辑器' }
 ];
 const isAdminPage = computed(() :boolean => route.fullPath.startsWith('/admin'));
 
